@@ -293,9 +293,6 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Kho hàng</h2>
-        <p className="text-muted-foreground">
-          Quản lý tồn kho và theo dõi sản phẩm
-        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
