@@ -54,19 +54,25 @@ export default function LoginPage() {
 
   // Check if user is already logged in
   useEffect(() => {
+    const sessionToken = sessionStorage.getItem("token");
+    const localToken = localStorage.getItem("token");
+    const token = sessionToken || localToken;
+
     const sessionRole = sessionStorage.getItem("Role");
     const localRole = localStorage.getItem("Role");
     const userRole = sessionRole || localRole;
 
-    if (userRole) {
+    // If token exists, redirect based on role
+    if (token && userRole) {
       const roleNumber = Number(userRole);
-      // Redirect to appropriate dashboard based on role
       if (roleNumber === 1) {
         navigate("/admin");
       } else if (roleNumber === 4) {
         navigate("/warehouse");
       } else if (roleNumber === 5) {
         navigate("/accountant");
+      } else if (roleNumber === 6) {
+        navigate("/planner");
       }
     }
   }, [navigate]);
@@ -116,6 +122,9 @@ export default function LoginPage() {
       } else if (response.token.roleId === 5) {
         toast.success("Đăng nhập thành công");
         navigate("/accountant");
+      } else if (response.token.roleId === 6) {
+        toast.success("Đăng nhập thành công");
+        navigate("/planner");
       } else {
         toast.error("Tài khoản của bạn không được phép vào hệ thống");
         if (data.rememberMe) {

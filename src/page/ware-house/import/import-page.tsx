@@ -212,9 +212,6 @@ export default function ImportPage() {
           <h2 className="text-2xl font-bold tracking-tight">
             Nhập sản phẩm vào kho
           </h2>
-          <p className="text-muted-foreground">
-            Quản lý phiếu nhập sản phẩm và kiểm tra chất lượng
-          </p>
         </div>
 
         <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
