@@ -134,9 +134,6 @@ export default function WarehouseDashboard() {
         <h2 className="text-2xl font-bold tracking-tight">
           Tổng quan kho hàng
         </h2>
-        <p className="text-muted-foreground">
-          Thống kê hoạt động xuất nhập kho
-        </p>
       </div>
 
       {warehouse && (
