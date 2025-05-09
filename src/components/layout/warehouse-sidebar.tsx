@@ -11,6 +11,7 @@ import {
   PackagePlus,
   PackageMinus,
   Eye,
+  PackageSearch,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -22,19 +23,9 @@ const menuItems = [
     icon: <BarChart3 className="h-5 w-5" />,
   },
   {
-    title: "Xem đơn xuất kho",
-    path: "/warehouse/view-export/",
-    icon: <Eye className="h-5 w-5" />,
-  },
-  {
-    title: "Duyệt đơn xuất kho",
-    path: "/warehouse/export/approval",
-    icon: <PackageCheck className="h-5 w-5" />,
-  },
-  {
-    title: "Xuất sản phẩm",
-    path: "/warehouse/export",
-    icon: <PackageMinus className="h-5 w-5" />,
+    title: "Kho hàng",
+    path: "/warehouse/inventory",
+    icon: <Warehouse className="h-5 w-5" />,
   },
   {
     title: "Nhập sản phẩm",
@@ -42,9 +33,25 @@ const menuItems = [
     icon: <PackagePlus className="h-5 w-5" />,
   },
   {
-    title: "Kho hàng",
-    path: "/warehouse/inventory",
-    icon: <Warehouse className="h-5 w-5" />,
+    title: "Xem đơn xuất kho",
+    path: "/warehouse/view-export/",
+    icon: <Eye className="h-5 w-5" />,
+  },
+  {
+    title: "Xuất sản phẩm",
+    path: "/warehouse/export",
+    icon: <PackageMinus className="h-5 w-5" />,
+  },
+  {
+    title: "Duyệt đơn xuất kho",
+    path: "/warehouse/export/approval",
+    icon: <PackageCheck className="h-5 w-5" />,
+  },
+
+  {
+    title: "Yêu cầu điều phối",
+    path: "/warehouse/transfer-request",
+    icon: <PackageSearch className="h-5 w-5" />,
   },
   {
     title: "Hồ sơ",
