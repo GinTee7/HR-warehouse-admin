@@ -28,9 +28,6 @@ import ViewExportPage from "./page/ware-house/view-export/view-export-page";
 import SignalRListener from "./components/signalr/SignalRListener";
 import PaymentHistoryPage from "./page/accountant/payment-history";
 import { AccountantLayout } from "./components/layout/accountant-layout";
-import { PlannerLayout } from "./components/layout/planner-layout";
-import InventoryLookupPage from "./page/planner/inventory/inventory-lookup/page";
-import WarehousePlannerPage from "./page/planner/warehouse-planner";
 import WarehouseTransfersPage from "./page/ware-house/tranfers/page";
 
 // Định nghĩa ProtectedLoginRoute trong cùng file hoặc import từ file riêng
@@ -120,19 +117,6 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             />
             <Route path="dashboard" element={<PaymentHistoryPage />} />
             <Route path="profile" element={<WarehouseProfile />} />
-            <Route path="*" element={<NotFoundPage />} />
-          </Route>
-        </Route>
-
-        {/* Protected Planner Routes */}
-        <Route element={<ProtectedRoute allowedRoles={[6]} />}>
-          <Route path="/planner" element={<PlannerLayout />}>
-            <Route
-              index
-              element={<Navigate to="/planner/dashboard" replace />}
-            />
-            <Route path="dashboard" element={<WarehousePlannerPage />} />
-            <Route path="view-product" element={<InventoryLookupPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Route>
