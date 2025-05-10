@@ -21,24 +21,23 @@ export interface ProductDetails {
 export interface Product {
   productId: number;
   quantity: number;
-  unit: string;
-  notes: string;
-  productDetails?: ProductDetails;
+  productName: string;
+  // Removed: unit, notes, productDetails
 }
 
 // Interface for Warehouse Transfer
 export interface WarehouseTransfer {
   id: number;
-  requestCode: string;
   sourceWarehouseId: number;
   destinationWarehouseId: number;
   requestDate: string;
   status: string;
   notes: string;
-  orderCode: string;
   products: Product[];
   sourceWarehouseName: string;
   destinationWarehouseName: string;
+  requestExportId: number; // Changed from string to number
+  warehouseTranferCode: string;
 }
 
 // Interface for Warehouse Information
@@ -46,4 +45,101 @@ export interface WarehouseInfo {
   warehouseId: number;
   warehouseName: string;
   fullAddress: string;
+}
+
+export interface TransferDetail {
+  transferDetailId: number;
+  transferId: number;
+  productId: number;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalAmount: number;
+}
+export interface WarehouseTransfer {
+  transferId: number;
+  sourceWarehouseId: number;
+  sourceWarehouseName: string;
+  destinationWarehouseId: number;
+  destinationWarehouseName: string;
+  transferDate: string;
+  status: string;
+  createdBy: string;
+  createdDate: string;
+  approvedBy: string;
+  approvedDate: string;
+  notes: string;
+  details: TransferDetail[];
+}
+export interface ReturnRequest {
+  returnRequestId: string;
+  receiptCode: string;
+  receiptDate: string;
+  warehouseId: number;
+  orderId: string;
+  createdAt: string;
+  createdByUserName: string;
+  status: string;
+  note: string;
+  details: ReturnRequestDetail[];
+}
+
+// Export Warehouse Receipt Types
+export interface ProductDetail {
+  warehouseProductId: number;
+  productId: number;
+  productName: string;
+  batchNumber: string;
+  quantity: number;
+  unitPrice: number;
+  totalProductAmount: number;
+  expiryDate: string;
+}
+
+export interface ExportWarehouseReceipt {
+  exportWarehouseReceiptId: number;
+  documentNumber: string;
+  documentDate: string;
+  exportDate: string;
+  exportType: "PendingTransfer" | "AvailableExport" | "ExportSale";
+  totalQuantity: number;
+  totalAmount: number;
+  status: string;
+  warehouseId: number;
+  requestExportId: number;
+  orderCode: string;
+  agencyName: string;
+  details: ProductDetail[];
+}
+
+// Return Request Types
+export interface ReturnRequestDetail {
+  returnRequestDetailId: string;
+  productName: string;
+  reason: string;
+  quantity: number;
+  batchId: string;
+}
+
+// Interface for Return Warehouse Receipt Detail
+export interface ReturnWarehouseReceiptDetail {
+  returnWarehouseReceiptDetailId: number;
+  productName: string;
+  quantity: number;
+  batchId: number;
+  reason: string;
+}
+
+// Interface for Return Warehouse Receipt
+export interface ReturnWarehouseReceipt {
+  returnWarehouseReceiptId: number;
+  receiptCode: string;
+  receiptDate: string;
+  createdAt: string;
+  returnRequestId: string;
+  warehouseId: number;
+  note: string;
+  status: string; // "Pending" | "Imported" etc.
+  details: ReturnWarehouseReceiptDetail[];
+  returnRequestCode: string;
 }
