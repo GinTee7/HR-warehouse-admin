@@ -87,7 +87,43 @@ interface PaymentHistory {
   transactionReference: string;
 }
 
+// Add global print styles
+const printStyles = `
+  @media print {
+    /* Hide buttons and footer in print view */
+    .DialogFooter,
+    button {
+      display: none !important;
+    }
+    
+    /* Ensure the dialog content is fully visible */
+    .DialogContent {
+      max-height: none !important;
+      overflow: visible !important;
+    }
+    
+    /* Hide any other elements you don't want to print */
+    @page {
+      size: auto;
+      margin: 10mm;
+    }
+  }
+`;
+
 export default function PaymentHistoryPage() {
+  // Add print styles to document
+  useEffect(() => {
+    // Add print styles to head
+    const style = document.createElement("style");
+    style.innerHTML = printStyles;
+    document.head.appendChild(style);
+
+    // Clean up on unmount
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   const [paymentHistories, setPaymentHistories] = useState<PaymentHistory[]>(
     []
   );
