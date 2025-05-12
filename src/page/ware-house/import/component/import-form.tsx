@@ -1,5 +1,7 @@
-import type React from "react";
+"use client";
 
+import type React from "react";
+import { forwardRef } from "react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,6 +33,7 @@ import { Plus, Trash2, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 // Định nghĩa các interface
 interface Product {
@@ -64,15 +67,58 @@ interface ImportFormProps {
 // Các loại đơn vị được phép
 const ALLOWED_UNITS = ["Chai", "Bao"];
 
-// Các loại nhập kho
-const IMPORT_TYPES = ["Nhập Sản Xuất"];
+// Create a forwardRef wrapper for the product selection button
+const ProductSelectButton = forwardRef<
+  HTMLButtonElement,
+  {
+    isLoading: boolean;
+    productName: string;
+    productCode: string;
+    onClick: () => void;
+    className?: string;
+    disabled?: boolean;
+  }
+>((props, ref) => {
+  const { isLoading, productName, productCode, onClick, className, disabled } =
+    props;
+
+  return (
+    <Button
+      ref={ref}
+      variant="outline"
+      className={`w-full justify-start text-left font-normal ${
+        className || ""
+      }`}
+      disabled={disabled || isLoading}
+      onClick={onClick}
+      type="button"
+    >
+      {isLoading ? (
+        <div className="flex items-center">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
+          <span>Đang tải...</span>
+        </div>
+      ) : productName ? (
+        <div className="flex flex-col">
+          <span>{productName}</span>
+          <span className="text-xs text-muted-foreground">{productCode}</span>
+        </div>
+      ) : (
+        <span className="text-muted-foreground">Chọn sản phẩm</span>
+      )}
+    </Button>
+  );
+});
+
+// Add display name to avoid React warnings
+ProductSelectButton.displayName = "ProductSelectButton";
 
 export function ImportForm({ onClose }: ImportFormProps) {
   const [formData, setFormData] = useState({
     documentNumber: `IMP-${format(new Date(), "yyyyMMdd")}-001`,
     importDate: new Date().toISOString().split("T")[0],
     warehouseId: "",
-    importType: "Nhập Sản Xuất",
+    importType: "ImportProduction",
     supplier: "",
     note: "",
   });
@@ -88,7 +134,7 @@ export function ImportForm({ onClose }: ImportFormProps) {
   const token = sessionStorage.getItem("token");
   const warehouseId = sessionStorage.getItem("warehouseId");
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
+  const navigate = useNavigate();
   // Set warehouse ID from session storage
   useEffect(() => {
     if (warehouseId) {
@@ -111,7 +157,10 @@ export function ImportForm({ onClose }: ImportFormProps) {
         });
 
         if (response.status === 200) {
-          setProducts(Array.isArray(response.data) ? response.data : []);
+          const responseData = response.data.success
+            ? response.data.data
+            : response.data;
+          setProducts(Array.isArray(responseData) ? responseData : []);
         } else {
           throw new Error("Failed to fetch products");
         }
@@ -144,10 +193,6 @@ export function ImportForm({ onClose }: ImportFormProps) {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -242,7 +287,6 @@ export function ImportForm({ onClose }: ImportFormProps) {
     );
     if (invalidItems) {
       console.log("Invalid items:", items);
-
       return;
     }
 
@@ -266,7 +310,7 @@ export function ImportForm({ onClose }: ImportFormProps) {
 
       // Call API to create import
       const response = await axios.post(
-        `${API_URL}WarehouseReceipt/create`,
+        `${API_URL}warehouse-receipts/create`,
         importData,
         {
           headers: {
@@ -278,6 +322,7 @@ export function ImportForm({ onClose }: ImportFormProps) {
 
       if (response.status === 200 || response.status === 201) {
         toast.success("Tạo phiếu nhập thành công");
+        navigate("/warehouse/inventory");
         onClose();
       } else {
         throw new Error("Failed to create import");
@@ -306,18 +351,6 @@ export function ImportForm({ onClose }: ImportFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="documentNumber">
-            Mã phiếu nhập <span className="text-red-500">*</span>
-          </Label>
-          <Input
-            id="documentNumber"
-            name="documentNumber"
-            value={formData.documentNumber}
-            onChange={handleInputChange}
-            required
-          />
-        </div>
-        <div className="space-y-2">
           <Label htmlFor="importDate">
             Ngày nhập <span className="text-red-500">*</span>
           </Label>
@@ -329,30 +362,6 @@ export function ImportForm({ onClose }: ImportFormProps) {
             onChange={handleInputChange}
             required
           />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="importType">
-            Loại nhập <span className="text-red-500">*</span>
-          </Label>
-          <Select
-            value={formData.importType}
-            onValueChange={(value) => handleSelectChange("importType", value)}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn loại nhập" />
-            </SelectTrigger>
-            <SelectContent>
-              {IMPORT_TYPES.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="supplier">
@@ -407,30 +416,12 @@ export function ImportForm({ onClose }: ImportFormProps) {
                 items.map((item, index) => (
                   <TableRow key={index}>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                        disabled={isLoadingProducts}
+                      <ProductSelectButton
+                        isLoading={isLoadingProducts}
+                        productName={item.productName}
+                        productCode={item.productCode}
                         onClick={() => openProductSelector(index)}
-                      >
-                        {isLoadingProducts ? (
-                          <div className="flex items-center">
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
-                            <span>Đang tải...</span>
-                          </div>
-                        ) : item.productName ? (
-                          <div className="flex flex-col">
-                            <span>{item.productName}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {item.productCode}
-                            </span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            Chọn sản phẩm
-                          </span>
-                        )}
-                      </Button>
+                      />
                     </TableCell>
                     <TableCell>
                       <Select
@@ -454,33 +445,41 @@ export function ImportForm({ onClose }: ImportFormProps) {
                     </TableCell>
                     <TableCell>
                       <Input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) =>
-                          updateItem(
-                            index,
-                            "quantity",
-                            Number.parseInt(e.target.value) || 0
-                          )
-                        }
+                        // chuyển thành text để dễ xử lý leading-zero
+                        type="text"
+                        inputMode="numeric"
+                        pattern="\d*"
                         className="w-[80px]"
+                        value={String(item.quantity)} // hiển thị đúng số nguyên
+                        onChange={(e) => {
+                          // chỉ giữ lại ký tự số
+                          const digits = e.target.value.replace(/\D/g, "");
+                          // parseInt sẽ loại bỏ 0 đầu; NaN -> 0
+                          const parsed = parseInt(digits, 10) || 0;
+                          // đảm bảo tối thiểu là 1
+                          const value = Math.max(parsed, 1);
+                          updateItem(index, "quantity", value);
+                        }}
                       />
                     </TableCell>
                     <TableCell>
                       <Input
-                        type="number"
-                        min="0"
-                        value={item.unitCost}
+                        // đổi thành text + inputMode numeric để control chuỗi đầu vào
+                        type="text"
+                        inputMode="numeric"
+                        pattern="\d*"
+                        className="w-[100px]"
+                        value={String(item.unitCost)} // hiển thị trực tiếp số nguyên
                         onChange={(e) => {
-                          // Giới hạn giá trị tối đa để tránh tràn
-                          const value = Math.min(
-                            Number.parseInt(e.target.value) || 0,
-                            999999999
-                          );
+                          // chỉ lấy các ký tự số
+                          const digits = e.target.value.replace(/\D/g, "");
+                          // parseInt bỏ qua 0 đầu, NaN => 0
+                          const parsed = parseInt(digits, 10);
+                          const value = isNaN(parsed)
+                            ? 0
+                            : Math.min(parsed, 999_999_999); // giới hạn tối đa
                           updateItem(index, "unitCost", value);
                         }}
-                        className="w-[100px]"
                       />
                     </TableCell>
                     <TableCell>
