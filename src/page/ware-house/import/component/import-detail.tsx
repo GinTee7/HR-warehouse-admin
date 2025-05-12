@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import {
   Table,
@@ -13,17 +15,21 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 import axios from "axios";
 
+// Updated interface to match the new data structure
 interface ImportDetailProps {
   importData: {
-    id: string;
+    warehouseReceiptId: number;
     documentNumber: string;
-    date: string;
+    documentDate: string;
+    warehouseId: number;
+    warehouseName: string;
     importType: string;
     supplier: string;
-    warehouse: string;
-    status: string;
-    totalValue: number;
-    warehouseId?: number;
+    dateImport: string;
+    totalQuantity: number;
+    totalPrice: number;
+    batches: any[];
+    isApproved: boolean;
   };
 }
 
@@ -53,25 +59,8 @@ interface ProductDetail {
   images: string[];
 }
 
-interface ImportResponse {
-  warehouseReceiptId: number;
-  documentNumber: string;
-  documentDate: string;
-  dateImport: string;
-  warehouseId: number;
-  importType: string;
-  supplier: string;
-  totalQuantity: number;
-  totalPrice: number;
-  isApproval: boolean;
-  batches: BatchItem[];
-}
-
 export function ImportDetail({ importData }: ImportDetailProps) {
   const [batches, setBatches] = useState<BatchItem[]>([]);
-  const [importDetails, setImportDetails] = useState<ImportResponse | null>(
-    null
-  );
   const [isLoading, setIsLoading] = useState(true);
   const [isApproving, setIsApproving] = useState(false);
   const [productDetails, setProductDetails] = useState<
@@ -87,7 +76,7 @@ export function ImportDetail({ importData }: ImportDetailProps) {
       try {
         // Fetch import details from API
         const response = await axios.get(
-          `${API_URL}WarehouseReceipt/${importData.id}`,
+          `${API_URL}warehouse-receipts/${importData.warehouseReceiptId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -95,30 +84,26 @@ export function ImportDetail({ importData }: ImportDetailProps) {
           }
         );
 
-        // Handle response as array
-        const responseData = response.data;
+        // Handle response
+        const responseData = response.data.success
+          ? response.data.data
+          : response.data;
         console.log("Import details response:", responseData);
 
-        // Check if response is an array and has items
-        if (Array.isArray(responseData) && responseData.length > 0) {
-          const data = responseData[0]; // Get the first item from the array
-          setImportDetails(data);
+        // If we have batches in the importData, use them directly
+        if (importData.batches && Array.isArray(importData.batches)) {
+          setBatches(importData.batches);
 
-          // Get batches from the data
-          if (data.batches && Array.isArray(data.batches)) {
-            setBatches(data.batches);
-
-            // Fetch product details for each unique productId
-            const uniqueProductIds = Array.from(
-              new Set(data.batches.map((batch: BatchItem) => batch.productId))
-            ) as number[];
-            await fetchProductDetails(uniqueProductIds);
-          } else {
-            setBatches([]);
-          }
-        } else if (!Array.isArray(responseData) && responseData.batches) {
-          // Handle case where response is a single object
-          setImportDetails(responseData);
+          // Fetch product details for each unique productId
+          const uniqueProductIds = Array.from(
+            new Set(
+              importData.batches.map((batch: BatchItem) => batch.productId)
+            )
+          ) as number[];
+          await fetchProductDetails(uniqueProductIds);
+        }
+        // Otherwise try to get them from the API response
+        else if (responseData && responseData.batches) {
           setBatches(responseData.batches);
 
           // Fetch product details
@@ -135,16 +120,27 @@ export function ImportDetail({ importData }: ImportDetailProps) {
       } catch (error) {
         console.error("Error fetching import details:", error);
         toast.error("Không thể tải chi tiết phiếu nhập");
-        setBatches([]);
+
+        // If API call fails but we have batches in importData, use them
+        if (importData.batches && Array.isArray(importData.batches)) {
+          setBatches(importData.batches);
+
+          const uniqueProductIds = Array.from(
+            new Set(
+              importData.batches.map((batch: BatchItem) => batch.productId)
+            )
+          ) as number[];
+          await fetchProductDetails(uniqueProductIds);
+        } else {
+          setBatches([]);
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (importData.id) {
-      fetchImportDetails();
-    }
-  }, [importData.id, API_URL, token]);
+    fetchImportDetails();
+  }, [importData, API_URL, token]);
 
   // Function to fetch product details
   const fetchProductDetails = async (productIds: number[]) => {
@@ -161,7 +157,8 @@ export function ImportDetail({ importData }: ImportDetailProps) {
           });
 
           if (response.data) {
-            console.log(`Product ${productId} details:`, response.data);
+            console.log(`Product details for ${productId}:`, response.data);
+
             productDetailsMap.set(productId, response.data);
           }
         } catch (error) {
@@ -191,7 +188,7 @@ export function ImportDetail({ importData }: ImportDetailProps) {
     try {
       // Call API to approve import
       const response = await axios.post(
-        `${API_URL}WarehouseReceipt/approve/${importData.id}`,
+        `${API_URL}WarehouseReceipt/approve/${importData.warehouseReceiptId}`,
         {},
         {
           headers: {
@@ -202,9 +199,6 @@ export function ImportDetail({ importData }: ImportDetailProps) {
 
       if (response.status === 200 || response.status === 204) {
         toast.success("Phiếu nhập đã được duyệt thành công");
-
-        // Update local state
-        importData.status = "completed";
 
         // Update batches status
         setBatches((prev) =>
@@ -231,17 +225,9 @@ export function ImportDetail({ importData }: ImportDetailProps) {
       return new Date(dateString).toLocaleDateString("vi-VN");
     } catch (error) {
       console.log("Error formatting date:", error);
-
       return "N/A";
     }
   };
-
-  // Check if import is pending
-  const isPending =
-    importDetails?.isApproval === false ||
-    (importDetails?.isApproval === undefined &&
-      (importData.status === "pending" ||
-        batches.some((batch) => batch.status === "PENDING")));
 
   return (
     <div className="space-y-6">
@@ -253,46 +239,43 @@ export function ImportDetail({ importData }: ImportDetailProps) {
           <div className="mt-2 space-y-2">
             <div className="grid grid-cols-2">
               <div className="text-sm font-medium">Mã phiếu nhập:</div>
-              <div className="text-sm">
-                {importDetails?.documentNumber || importData.documentNumber}
-              </div>
+              <div className="text-sm">{importData.documentNumber}</div>
             </div>
             <div className="grid grid-cols-2">
               <div className="text-sm font-medium">Ngày nhập:</div>
               <div className="text-sm">
-                {formatDate(importDetails?.dateImport || importData.date)}
+                {formatDate(importData.documentDate)}
               </div>
             </div>
             <div className="grid grid-cols-2">
               <div className="text-sm font-medium">Loại nhập:</div>
-              <div className="text-sm">
-                {importDetails?.importType || importData.importType}
-              </div>
+              <div className="text-sm">{importData.importType}</div>
             </div>
             <div className="grid grid-cols-2">
               <div className="text-sm font-medium">Kho nhập:</div>
-              <div className="text-sm">{importData.warehouse}</div>
+              <div className="text-sm">{importData.warehouseName}</div>
             </div>
             <div className="grid grid-cols-2">
               <div className="text-sm font-medium">Trạng thái:</div>
               <div className="text-sm">
                 <span
                   className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                    !isPending
+                    importData.isApproved
                       ? "bg-green-100 text-green-800"
                       : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
-                  {!isPending ? "Hoàn thành" : "Đang kiểm tra"}
+                  {importData.isApproved ? (
+                    <span className="flex items-center">Hoàn thành</span>
+                  ) : (
+                    "Đang kiểm tra"
+                  )}
                 </span>
               </div>
             </div>
             <div className="grid grid-cols-2">
               <div className="text-sm font-medium">Tổng số lượng:</div>
-              <div className="text-sm">
-                {importDetails?.totalQuantity ||
-                  batches.reduce((sum, b) => sum + b.quantity, 0)}
-              </div>
+              <div className="text-sm">{importData.totalQuantity}</div>
             </div>
           </div>
         </div>
@@ -304,13 +287,11 @@ export function ImportDetail({ importData }: ImportDetailProps) {
           <div className="mt-2 space-y-2">
             <div className="grid grid-cols-2">
               <div className="text-sm font-medium">Nhà cung cấp:</div>
-              <div className="text-sm">
-                {importDetails?.supplier || importData.supplier}
-              </div>
+              <div className="text-sm">{importData.supplier}</div>
             </div>
           </div>
 
-          {isPending && (
+          {!importData.isApproved && (
             <div className="mt-4">
               <Button
                 onClick={handleApprove}
@@ -400,14 +381,9 @@ export function ImportDetail({ importData }: ImportDetailProps) {
                 </TableCell>
                 <TableCell
                   className="font-bold max-w-[120px] truncate"
-                  title={`${(
-                    importDetails?.totalPrice || importData.totalValue
-                  ).toLocaleString()} đ`}
+                  title={`${importData.totalPrice.toLocaleString()} đ`}
                 >
-                  {(
-                    importDetails?.totalPrice || importData.totalValue
-                  ).toLocaleString()}
-                  VNĐ
+                  {importData.totalPrice.toLocaleString()} VNĐ
                 </TableCell>
                 <TableCell></TableCell>
               </TableRow>
@@ -423,7 +399,7 @@ export function ImportDetail({ importData }: ImportDetailProps) {
           Ghi chú
         </h3>
         <p className="text-sm text-muted-foreground">
-          {!isPending
+          {importData.isApproved
             ? "Hàng đã được kiểm tra chất lượng và nhập kho thành công."
             : "Hàng đã được kiểm tra số lượng. Đang tiến hành kiểm tra chất lượng."}
         </p>
