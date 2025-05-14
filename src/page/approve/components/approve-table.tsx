@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, CheckCircle2, XCircle } from "lucide-react";
+import { Eye } from "lucide-react";
 import type { PendingAccount } from "../approve-page";
 import { AccountDetailDialog } from "./account-detail-dialog";
 import {
@@ -26,15 +26,8 @@ export function ApproveTable({
   onApprove,
   onReject,
 }: ApproveTableProps) {
-  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(
-    null
-  );
+  const [selectedAccountId] = useState<number | null>(null);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
-
-  const handleRejectClick = (id: number) => {
-    setSelectedAccountId(id);
-    setIsRejectDialogOpen(true);
-  };
 
   const handleConfirmReject = () => {
     if (selectedAccountId !== null) {
@@ -90,7 +83,11 @@ export function ApproveTable({
                 ) : null}
               </div>
               <div className="flex justify-end space-x-2">
-                <AccountDetailDialog account={account}>
+                <AccountDetailDialog
+                  account={account}
+                  onApprove={onApprove}
+                  onReject={onReject}
+                >
                   <Button
                     variant="outline"
                     size="sm"
@@ -100,26 +97,6 @@ export function ApproveTable({
                     Chi tiết
                   </Button>
                 </AccountDetailDialog>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-2 text-green-700 bg-green-50 hover:bg-green-100 hover:text-green-800 border-green-200"
-                  onClick={() => onApprove(account.registerId)}
-                >
-                  <CheckCircle2 className="h-4 w-4 mr-1" />
-                  Duyệt
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-2 text-red-700 bg-red-50 hover:bg-red-100 hover:text-red-800 border-red-200"
-                  onClick={() => handleRejectClick(account.registerId)}
-                >
-                  <XCircle className="h-4 w-4 mr-1" />
-                  Từ chối
-                </Button>
               </div>
             </div>
           ))}
