@@ -8,8 +8,8 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ allowedRoles }: ProtectedRouteProps) => {
   const location = useLocation();
 
-  // Get role from sessionStorage or localStorage
-  const sessionRole = sessionStorage.getItem("Role");
+  // Get role from localStorage or localStorage
+  const sessionRole = localStorage.getItem("Role");
   const localRole = localStorage.getItem("Role");
   const userRole = sessionRole || localRole;
   // Check if user is authenticated and has the required role

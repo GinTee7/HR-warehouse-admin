@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import * as Avatar from "@radix-ui/react-avatar";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { LogOut, Menu, Settings, User, Loader2, Bell } from "lucide-react";
+import { LogOut, Menu, User, Loader2, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import axios from "axios";
@@ -96,12 +96,12 @@ export function Header({ onMenuClick }: HeaderProps) {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Lấy userId từ sessionStorage
-        const userId = sessionStorage.getItem("userId");
+        // Lấy userId từ localStorage
+        const userId = localStorage.getItem("userId");
 
         if (userId) {
           const response = await axios.get(
-            `https://minhlong.mlhr.org/api/user/${userId}`
+            `https://minhlong.mlhr.org/api/get-info-user/${userId}`
           );
           setUserData(response.data);
         }
@@ -123,7 +123,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   // Hàm lấy thông báo từ API
   const fetchNotifications = async () => {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     try {
       setNotificationsLoading(true);
       const response = await axios.get(
@@ -151,7 +151,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         null,
         {
           headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -175,7 +175,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   const handleLogout = async () => {
     try {
-      sessionStorage.clear();
+      localStorage.clear();
       toast.success("Đăng xuất thành công");
       navigate("/login");
     } catch (error) {
@@ -418,7 +418,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                       <DropdownMenu.Item
                         className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100 focus:bg-gray-100"
                         onSelect={() => {
-                          const role = sessionStorage.getItem("Role"); // hoặc từ context nếu bạn lưu role ở context
+                          const role = localStorage.getItem("Role"); // hoặc từ context nếu bạn lưu role ở context
                           if (role === "1") {
                             navigate("/admin/profile");
                           } else if (role === "3") {
@@ -428,14 +428,6 @@ export function Header({ onMenuClick }: HeaderProps) {
                       >
                         <User className="mr-2 h-4 w-4" />
                         <span>Hồ sơ</span>
-                      </DropdownMenu.Item>
-
-                      <DropdownMenu.Item
-                        className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-gray-100 focus:bg-gray-100"
-                        onSelect={() => console.log("Settings clicked")}
-                      >
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Cài đặt</span>
                       </DropdownMenu.Item>
                     </div>
 
