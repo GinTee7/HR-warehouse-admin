@@ -81,7 +81,7 @@ export function ExportDetail({
 
   const navigate = useNavigate();
 
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token");
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   // Format date for display
@@ -358,7 +358,7 @@ export function ExportDetail({
         open={isApprovalDialogOpen}
         onOpenChange={setIsApprovalDialogOpen}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Duyệt đơn xuất kho</DialogTitle>
             <DialogDescription>

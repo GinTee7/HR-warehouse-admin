@@ -7,11 +7,11 @@ const API_URL = import.meta.env.VITE_API_URL || "https://api.example.com/";
 // Fetch return requests for a warehouse
 export async function fetchReturnRequests(): Promise<ReturnWarehouseReceipt[]> {
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("Không tìm thấy token xác thực");
     }
-    const idWarehouseId = sessionStorage.getItem("warehouseId");
+    const idWarehouseId = localStorage.getItem("warehouseId");
     const response = await axios.get(
       `${API_URL}returns/warehouse-return/WarehouseReturnByWarehouseId/${idWarehouseId}`,
       {
@@ -38,7 +38,7 @@ export async function fetchReturnRequestDetails(
   returnRequestId: string
 ): Promise<ReturnWarehouseReceipt | null> {
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("Không tìm thấy token xác thực");
     }
@@ -67,7 +67,7 @@ export async function approveReturnRequest(
   returnRequestId: string
 ): Promise<boolean> {
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("Không tìm thấy token xác thực");
     }
@@ -98,13 +98,13 @@ export async function rejectReturnRequest(
   returnRequestId: string
 ): Promise<boolean> {
   try {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (!token) {
       throw new Error("Không tìm thấy token xác thực");
     }
 
     const response = await axios.post(
-      `${API_URL}/api/returns/reject/${returnRequestId}`,
+      `${API_URL}/returns/reject/${returnRequestId}`,
       null,
       {
         headers: { Authorization: `Bearer ${token}` },

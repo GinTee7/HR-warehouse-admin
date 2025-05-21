@@ -9,7 +9,7 @@ const API_URL = "https://minhlong.mlhr.org/api/";
 
 // Create axios instance with authorization header
 const getAuthHeaders = () => {
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
   return {
     headers: {

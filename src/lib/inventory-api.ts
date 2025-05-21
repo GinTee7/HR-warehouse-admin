@@ -5,7 +5,7 @@ const API_URL = "https://minhlong.mlhr.org/api/";
 
 // Get token from session storage
 const getAuthHeaders = () => {
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token");
   return {
     headers: {
       Authorization: token ? `Bearer ${token}` : "",

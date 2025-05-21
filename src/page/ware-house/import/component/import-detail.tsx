@@ -66,7 +66,7 @@ export function ImportDetail({ importData }: ImportDetailProps) {
   const [productDetails, setProductDetails] = useState<
     Map<number, ProductDetail>
   >(new Map());
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token");
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
   // Fetch import details
@@ -229,6 +229,16 @@ export function ImportDetail({ importData }: ImportDetailProps) {
     }
   };
 
+  const getImportTypeDisplay = (importType: string) => {
+    switch (importType) {
+      case "ImportCoordination":
+        return "Nhập điều phối";
+      case "ImportProduction":
+        return "Nhập hàng mới";
+      default:
+        return importType;
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
@@ -249,7 +259,9 @@ export function ImportDetail({ importData }: ImportDetailProps) {
             </div>
             <div className="grid grid-cols-2">
               <div className="text-sm font-medium">Loại nhập:</div>
-              <div className="text-sm">{importData.importType}</div>
+              <div className="text-sm">
+                {getImportTypeDisplay(importData.importType)}
+              </div>
             </div>
             <div className="grid grid-cols-2">
               <div className="text-sm font-medium">Kho nhập:</div>

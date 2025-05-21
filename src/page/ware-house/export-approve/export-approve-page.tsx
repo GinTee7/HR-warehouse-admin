@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +47,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { ExportRequestDetailDialog } from "./component/export-request-detail-dialog";
 
 // Interface cho dữ liệu yêu cầu xuất kho
 interface ExportRequest {
@@ -82,11 +85,13 @@ export default function ExportApprovalPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [selectedDetailId, setSelectedDetailId] = useState<number | null>(null);
 
-  const token = sessionStorage.getItem("token");
-  const warehouseId = sessionStorage.getItem("warehouseId") || "3";
+  const token = localStorage.getItem("token");
+  const warehouseId = localStorage.getItem("warehouseId") || "3";
   const userId =
-    sessionStorage.getItem("userId") || "3fa85f64-5717-4562-b3fc-2c963f66afa6";
+    localStorage.getItem("userId") || "3fa85f64-5717-4562-b3fc-2c963f66afa6";
   const API_URL = import.meta.env.VITE_API_URL || "https://minhlong.mlhr.org";
 
   // Fetch export requests
@@ -122,6 +127,23 @@ export default function ExportApprovalPage() {
           })
         );
 
+        // Sort requests so that pending requests appear first
+        formattedData.sort((a, b) => {
+          if (
+            a.status.toLowerCase() === "pending" &&
+            b.status.toLowerCase() !== "pending"
+          ) {
+            return -1;
+          }
+          if (
+            a.status.toLowerCase() !== "pending" &&
+            b.status.toLowerCase() === "pending"
+          ) {
+            return 1;
+          }
+          return 0;
+        });
+
         setExportRequests(formattedData);
       } else {
         toast.error("Dữ liệu không hợp lệ");
@@ -130,7 +152,6 @@ export default function ExportApprovalPage() {
       }
     } catch (error) {
       console.error("Error fetching export requests:", error);
-      toast.error("Không thể tải danh sách yêu cầu xuất kho");
       setExportRequests([]);
       setFilteredRequests([]);
     } finally {
@@ -223,6 +244,11 @@ export default function ExportApprovalPage() {
   const handleApproveRequest = (request: ExportRequest) => {
     setSelectedRequest(request);
     setIsApproveDialogOpen(true);
+  };
+
+  const handleViewDetails = (warehouseRequestExportId: number) => {
+    setSelectedDetailId(warehouseRequestExportId);
+    setIsDetailDialogOpen(true);
   };
 
   // Submit approval
@@ -338,22 +364,30 @@ export default function ExportApprovalPage() {
                   </TableCell>
                 )}
                 <TableCell className="text-right">
-                  {request.status.toLowerCase() === "pending" ? (
+                  <div className="flex justify-end gap-2">
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
-                      className="bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700"
-                      onClick={() => handleApproveRequest(request)}
+                      onClick={() =>
+                        handleViewDetails(request.warehouseRequestExportId)
+                      }
                     >
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Duyệt
-                    </Button>
-                  ) : (
-                    <Button variant="ghost" size="sm" disabled>
                       <FileText className="h-4 w-4 mr-1" />
                       Chi tiết
                     </Button>
-                  )}
+
+                    {request.status.toLowerCase() === "pending" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-700"
+                        onClick={() => handleApproveRequest(request)}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Duyệt
+                      </Button>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             ))
@@ -369,9 +403,6 @@ export default function ExportApprovalPage() {
         <h2 className="text-2xl font-bold tracking-tight">
           Duyệt đơn xuất kho
         </h2>
-        <p className="text-muted-foreground">
-          Quản lý và duyệt các yêu cầu xuất kho
-        </p>
       </div>
 
       <Tabs
@@ -428,7 +459,7 @@ export default function ExportApprovalPage() {
                   <Select
                     value={itemsPerPage.toString()}
                     onValueChange={(value) => {
-                      setItemsPerPage(parseInt(value));
+                      setItemsPerPage(Number.parseInt(value));
                       setCurrentPage(1);
                     }}
                   >
@@ -1102,6 +1133,14 @@ export default function ExportApprovalPage() {
             };
             handleSubmitApproval(approvalData);
           }}
+        />
+      )}
+      {/* Dialog for viewing export request details */}
+      {selectedDetailId && (
+        <ExportRequestDetailDialog
+          warehouseRequestExportId={selectedDetailId}
+          open={isDetailDialogOpen}
+          onOpenChange={setIsDetailDialogOpen}
         />
       )}
     </div>

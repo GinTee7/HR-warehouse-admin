@@ -131,8 +131,8 @@ export function ImportForm({ onClose }: ImportFormProps) {
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
   const [isProductSelectorOpen, setIsProductSelectorOpen] = useState(false);
 
-  const token = sessionStorage.getItem("token");
-  const warehouseId = sessionStorage.getItem("warehouseId");
+  const token = localStorage.getItem("token");
+  const warehouseId = localStorage.getItem("warehouseId");
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
   const navigate = useNavigate();
   // Set warehouse ID from session storage
@@ -294,7 +294,7 @@ export function ImportForm({ onClose }: ImportFormProps) {
     try {
       // Prepare data for API
       const importData = {
-        documentNumber: formData.documentNumber,
+        dateImport: formData.importDate,
         warehouseId: Number.parseInt(formData.warehouseId),
         importType: formData.importType,
         supplier: formData.supplier,
@@ -358,6 +358,7 @@ export function ImportForm({ onClose }: ImportFormProps) {
             id="importDate"
             name="importDate"
             type="date"
+            max={new Date().toISOString().split("T")[0]}
             value={formData.importDate}
             onChange={handleInputChange}
             required

@@ -115,7 +115,7 @@ export function TransferDetailsDialog({
   const [isApproving, setIsApproving] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
 
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token");
   const API_URL = import.meta.env.VITE_API_URL || "https://minhlong.mlhr.org";
 
   const handleApprove = async () => {
@@ -242,7 +242,9 @@ export function TransferDetailsDialog({
                       </div>
                       <div>
                         Số lượng:{" "}
-                        <Badge variant="outline">{product.quantity}</Badge>
+                        <Badge className="text-base" variant="outline">
+                          {product.quantity}
+                        </Badge>
                       </div>
                     </div>
                   </CardHeader>

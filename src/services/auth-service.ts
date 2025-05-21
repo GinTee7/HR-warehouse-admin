@@ -51,8 +51,8 @@ export const authService = {
       // Clear local storage
       localStorage.removeItem("token");
       localStorage.removeItem("Role");
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("Role");
+      localStorage.removeItem("token");
+      localStorage.removeItem("Role");
       // Optional: Call logout API if needed
       // await api.post("/auth/logout")
     } catch (error) {
@@ -64,7 +64,7 @@ export const authService = {
   // Check if user is authenticated
   isAuthenticated: (): boolean => {
     const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
+      localStorage.getItem("token") || localStorage.getItem("token");
     return !!token;
   },
 
@@ -76,7 +76,7 @@ export const authService = {
 
   // Get auth token
   getToken: (): string | null => {
-    return localStorage.getItem("token") || sessionStorage.getItem("token");
+    return localStorage.getItem("token") || localStorage.getItem("token");
   },
 };
 

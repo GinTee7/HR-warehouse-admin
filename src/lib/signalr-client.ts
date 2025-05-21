@@ -3,7 +3,7 @@ import * as signalR from "@microsoft/signalr";
 
 export const connection = new signalR.HubConnectionBuilder()
   .withUrl("https://minhlong.mlhr.org/hubs/notifications", {
-    accessTokenFactory: () => sessionStorage.getItem("token") ?? "",
+    accessTokenFactory: () => localStorage.getItem("token") ?? "",
   })
   .withAutomaticReconnect()
   .build();
