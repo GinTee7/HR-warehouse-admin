@@ -30,14 +30,14 @@ export default function WarehouseTransfersPage() {
 
   useEffect(() => {
     // Get warehouse ID from session storage
-    const storedWarehouseId = sessionStorage.getItem("warehouseId");
+    const storedWarehouseId = localStorage.getItem("warehouseId");
     if (storedWarehouseId) {
       setWarehouseId(Number.parseInt(storedWarehouseId, 10));
     } else {
       // For demo purposes, default to warehouse ID 1 if not found
       setWarehouseId(1);
       console.warn(
-        "warehouseId not found in sessionStorage, using default value 1"
+        "warehouseId not found in localStorage, using default value 1"
       );
     }
   }, []);
