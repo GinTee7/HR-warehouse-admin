@@ -32,11 +32,11 @@ import WarehouseTransfersPage from "./page/ware-house/tranfers/page";
 
 // Định nghĩa ProtectedLoginRoute trong cùng file hoặc import từ file riêng
 const ProtectedLoginRoute = () => {
-  const sessionToken = sessionStorage.getItem("token");
+  const sessionToken = localStorage.getItem("token");
   const localToken = localStorage.getItem("token");
   const token = sessionToken || localToken;
 
-  const sessionRole = sessionStorage.getItem("Role");
+  const sessionRole = localStorage.getItem("Role");
   const localRole = localStorage.getItem("Role");
   const userRole = sessionRole || localRole;
 
@@ -53,7 +53,6 @@ const ProtectedLoginRoute = () => {
         return <Navigate to="/planner" replace />;
       default:
         toast.error("Vai trò không hợp lệ, vui lòng đăng nhập lại");
-        sessionStorage.clear();
         localStorage.clear();
         return <Outlet />;
     }
