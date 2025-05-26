@@ -8,7 +8,7 @@ export interface Account {
   username: string; // Username of the account
   email: string; // Email address
   password?: string; // Password
-  userType: "EMPLOYEE" | "AGENT"; // Type of user
+  userType: "EMPLOYEE" | "AGENT" | "AGENCY"; // Type of user
   phone: string; // Phone number
   status: boolean; // Active or inactive status
   fullName?: string; // Full name of the user
@@ -17,6 +17,17 @@ export interface Account {
   wardName?: string; // Ward name
   districtName?: string; // District name
   provinceName?: string; // Province name
+  contracts?: Contract[];
+  address: string;
+  verifyEmail: boolean; // Email verification status
+}
+
+export interface Contract {
+  contractId: number;
+  fileName: string;
+  filePath: string;
+  fileType: string;
+  createdAt: string;
 }
 
 // Interface for paginated account response
@@ -48,7 +59,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Lấy token từ session storage thay vì localStorage
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { AccountsHeader } from "./components/accounts-header";
@@ -14,6 +16,7 @@ export default function AccountsPage() {
   const [limit] = useState(10);
   const [search, setSearch] = useState("");
   const [accountType, setAccountType] = useState<string>("");
+  const [accountStatus, setAccountStatus] = useState<string>("ALL");
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -37,7 +40,7 @@ export default function AccountsPage() {
     fetchAccounts();
   }, []);
 
-  // Filter accounts based on search and accountType
+  // Filter accounts based on search, accountType, and accountStatus
   const filteredAccounts = useMemo(() => {
     return accounts.filter((account) => {
       // Filter by search term (username, email, phone)
@@ -55,9 +58,15 @@ export default function AccountsPage() {
         accountType === "" ||
         account.userType === accountType;
 
-      return searchMatch && typeMatch;
+      // Filter by account status
+      const statusMatch =
+        accountStatus === "ALL" ||
+        (accountStatus === "ACTIVE" && account.status === true) ||
+        (accountStatus === "INACTIVE" && account.status === false);
+
+      return searchMatch && typeMatch && statusMatch;
     });
-  }, [accounts, search, accountType]);
+  }, [accounts, search, accountType, accountStatus]);
 
   // Calculate pagination
   const totalItems = filteredAccounts.length;
@@ -70,7 +79,7 @@ export default function AccountsPage() {
   // Reset to first page when filters change
   useEffect(() => {
     setPage(1);
-  }, [search, accountType]);
+  }, [search, accountType, accountStatus]);
 
   const handleDelete = async (userId: string | number) => {
     try {
@@ -137,6 +146,8 @@ export default function AccountsPage() {
         setSearch={setSearch}
         accountType={accountType}
         setAccountType={setAccountType}
+        accountStatus={accountStatus}
+        setAccountStatus={setAccountStatus}
       />
 
       <AccountsTable

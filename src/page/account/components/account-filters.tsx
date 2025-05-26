@@ -15,6 +15,8 @@ interface AccountsFilterProps {
   setSearch: (value: string) => void;
   accountType: string;
   setAccountType: (value: string) => void;
+  accountStatus: string;
+  setAccountStatus: (value: string) => void;
 }
 
 export function AccountsFilter({
@@ -22,6 +24,8 @@ export function AccountsFilter({
   setSearch,
   accountType,
   setAccountType,
+  accountStatus,
+  setAccountStatus,
 }: AccountsFilterProps) {
   return (
     <div className="bg-white p-4 rounded-md border">
@@ -45,6 +49,16 @@ export function AccountsFilter({
             <SelectItem value="ALL">Tất cả</SelectItem>
             <SelectItem value="EMPLOYEE">Nhân viên</SelectItem>
             <SelectItem value="AGENCY">Đại lý</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={accountStatus} onValueChange={setAccountStatus}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Trạng thái" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Tất cả</SelectItem>
+            <SelectItem value="ACTIVE">Kích hoạt</SelectItem>
+            <SelectItem value="INACTIVE">Vô hiệu hóa</SelectItem>
           </SelectContent>
         </Select>
       </div>
