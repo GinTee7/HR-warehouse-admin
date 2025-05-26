@@ -1,7 +1,8 @@
+"use client";
+
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import {
-  User,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -45,17 +46,16 @@ const menuItems = [
   //   path: "/warehouse/export/approval",
   //   icon: <PackageCheck className="h-5 w-5" />,
   // },
-
   {
     title: "Yêu cầu điều phối",
     path: "/warehouse/transfer-request",
     icon: <PackageSearch className="h-5 w-5" />,
   },
-  {
-    title: "Hồ sơ",
-    path: "/warehouse/profile",
-    icon: <User className="h-5 w-5" />,
-  },
+  // {
+  //   title: "Hồ sơ",
+  //   path: "/warehouse/profile",
+  //   icon: <User className="h-5 w-5" />,
+  // },
 ];
 
 interface WarehouseSidebarProps {
@@ -69,27 +69,41 @@ export function WarehouseSidebar({ collapsed = false }: WarehouseSidebarProps) {
   return (
     <div
       className={cn(
-        "h-screen bg-slate-800 text-white p-4 transition-all duration-300 flex flex-col",
+        "h-screen bg-slate-800 text-white transition-all duration-300 flex flex-col",
         isCollapsed ? "w-20" : "w-64"
       )}
     >
-      <div className="flex items-center justify-between mb-6">
-        {!isCollapsed && <div className="text-xl font-bold">Quản lý kho</div>}
+      <div
+        className={cn(
+          "flex items-center border-b border-slate-700 py-4",
+          isCollapsed ? "px-2 justify-between" : "px-4 justify-between"
+        )}
+      >
+        {isCollapsed ? (
+          <div className="flex items-center">
+            <img src="/logo.jpg" alt="Logo" className="h-10 w-10" />
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <img src="/logo.jpg" alt="Logo" className="h-8 w-8" />
+            <div className="text-xl font-bold">Quản lý kho</div>
+          </div>
+        )}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="text-white hover:bg-slate-700 ml-auto"
+          className="text-white hover:bg-slate-700 h-8 w-8"
         >
           {isCollapsed ? (
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4" />
           ) : (
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4" />
           )}
         </Button>
       </div>
 
-      <div className="md:hidden mb-6">
+      <div className="md:hidden px-4 py-3">
         <Button
           variant="ghost"
           size="icon"
@@ -99,7 +113,7 @@ export function WarehouseSidebar({ collapsed = false }: WarehouseSidebarProps) {
         </Button>
       </div>
 
-      <nav className="space-y-1 flex-1">
+      <nav className="space-y-1 flex-1 px-2 py-4">
         {menuItems.map((item) => (
           <Link
             key={item.path}

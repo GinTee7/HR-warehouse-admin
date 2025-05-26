@@ -1,12 +1,25 @@
+"use client";
+
 import { connection } from "@/lib/signalr-client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { AccountDeactivatedModal } from "../account-deactivated-modal";
 
 let isConnected = false;
 
-export default function SignalRListener() {
+export function SignalRListener() {
   const navigate = useNavigate();
+  const [showDeactivatedModal, setShowDeactivatedModal] = useState(false);
+
+  const handleAccountDeactivated = () => {
+    // Clear session storage first
+    localStorage.clear();
+    // Set modal to false to close it
+    setShowDeactivatedModal(false);
+    // Then navigate to login
+    navigate("/login");
+  };
 
   useEffect(() => {
     if (!isConnected && connection.state === "Disconnected") {
@@ -46,11 +59,24 @@ export default function SignalRListener() {
       });
     });
 
+    connection.on("UnActive", (noti) => {
+      console.log(noti);
+      setShowDeactivatedModal(true);
+    });
+
     return () => {
       connection.off("ReceiveNotification");
+      connection.off("UnActive");
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return null;
+  return (
+    <AccountDeactivatedModal
+      isOpen={showDeactivatedModal}
+      onConfirm={handleAccountDeactivated}
+    />
+  );
 }
+
+export default SignalRListener;
