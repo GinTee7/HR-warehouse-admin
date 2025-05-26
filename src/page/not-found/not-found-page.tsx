@@ -16,7 +16,7 @@ export default function NotFoundPage() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button onClick={() => navigate(-1)}>Quay lại trang trước</Button>
-          <Button variant="outline" onClick={() => navigate("/admin/accounts")}>
+          <Button variant="outline" onClick={() => navigate("/")}>
             Về trang chủ
           </Button>
         </div>
