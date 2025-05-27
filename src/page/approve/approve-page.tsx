@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { approveService } from "./services/approve-service";
 import { ApproveHeader } from "./components/approve-header";
@@ -20,6 +22,13 @@ export interface PendingAccount {
   provinceName: string;
   isApproved: boolean;
   accountRegisterStatus: string;
+  contracts: {
+    contractId: number;
+    fileName: string;
+    filePath: string;
+    fileType: string;
+    createdAt: string;
+  }[];
 }
 
 export default function ApprovePage() {

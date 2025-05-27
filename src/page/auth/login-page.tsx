@@ -54,11 +54,11 @@ export default function LoginPage() {
 
   // Check if user is already logged in
   useEffect(() => {
-    const sessionToken = sessionStorage.getItem("token");
+    const sessionToken = localStorage.getItem("token");
     const localToken = localStorage.getItem("token");
     const token = sessionToken || localToken;
 
-    const sessionRole = sessionStorage.getItem("Role");
+    const sessionRole = localStorage.getItem("Role");
     const localRole = localStorage.getItem("Role");
     const userRole = sessionRole || localRole;
 
@@ -107,9 +107,9 @@ export default function LoginPage() {
         localStorage.setItem("token", token);
         localStorage.setItem("Role", response.token.roleId.toString());
       } else {
-        sessionStorage.setItem("userId", userId);
-        sessionStorage.setItem("token", token);
-        sessionStorage.setItem("Role", response.token.roleId.toString());
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("token", token);
+        localStorage.setItem("Role", response.token.roleId.toString());
       }
 
       // Redirect
@@ -131,14 +131,15 @@ export default function LoginPage() {
           localStorage.removeItem("token");
           localStorage.removeItem("Role");
         } else {
-          sessionStorage.removeItem("token");
-          sessionStorage.removeItem("Role");
+          localStorage.removeItem("token");
+          localStorage.removeItem("Role");
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
       toast.error(
-        "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập."
+        error.response?.data?.message ||
+          "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập."
       );
     } finally {
       setIsLoading(false);
