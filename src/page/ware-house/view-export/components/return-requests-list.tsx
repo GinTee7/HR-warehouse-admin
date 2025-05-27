@@ -22,7 +22,6 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -38,7 +37,6 @@ import {
   ClipboardList,
   RefreshCcw,
   CheckCircle,
-  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -90,7 +88,7 @@ export function ReturnRequestsList({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(max-width: 1024px)");
 
-  const token = sessionStorage.getItem("token");
+  const token = localStorage.getItem("token");
   const API_URL = import.meta.env.VITE_API_URL || "https://api.example.com/";
 
   // Update filtered requests when returnRequests changes
@@ -157,7 +155,7 @@ export function ReturnRequestsList({
     } else if (statusLower === "pending") {
       return (
         <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
-          Chờ xử lý
+          Chờ xử lí
         </Badge>
       );
     } else if (statusLower === "imported") {
@@ -218,35 +216,6 @@ export function ReturnRequestsList({
       }
     } catch (error: any) {
       console.error("Error approving return:", error);
-      toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // Handle reject return request
-  const handleRejectReturn = async () => {
-    if (!selectedRequest) return;
-
-    setIsProcessing(true);
-    try {
-      const response = await axios.post(
-        `${API_URL}/api/returns/reject/${selectedRequest.returnWarehouseReceiptId}`,
-        null,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.status === 200 || response.status === 201) {
-        toast.success("Đã từ chối yêu cầu trả hàng thành công");
-        onProcessed();
-        setIsDetailOpen(false);
-      } else {
-        throw new Error("Không thể từ chối yêu cầu trả hàng");
-      }
-    } catch (error: any) {
-      console.error("Error rejecting return:", error);
       toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
     } finally {
       setIsProcessing(false);
@@ -346,7 +315,7 @@ export function ReturnRequestsList({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả trạng thái</SelectItem>
-              <SelectItem value="pending">Chờ xử lý</SelectItem>
+              <SelectItem value="pending">Chờ xử lí</SelectItem>
               <SelectItem value="imported">Đã nhập kho</SelectItem>
             </SelectContent>
           </Select>
@@ -594,12 +563,9 @@ export function ReturnRequestsList({
 
       {selectedRequest && (
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="sm:max-w-[800px]">
+          <DialogContent className="sm:max-w-[1200px]">
             <DialogHeader>
               <DialogTitle>Chi tiết phiếu trả hàng</DialogTitle>
-              <DialogDescription>
-                Thông tin chi tiết phiếu trả hàng #{selectedRequest.receiptCode}
-              </DialogDescription>
             </DialogHeader>
 
             <ReturnRequestDetail request={selectedRequest} />
@@ -607,19 +573,6 @@ export function ReturnRequestsList({
             <DialogFooter className="flex justify-between items-center">
               {selectedRequest.status.toLowerCase() === "pending" && (
                 <>
-                  <Button
-                    variant="outline"
-                    className="bg-red-100 text-red-800 hover:bg-red-200 border-red-300"
-                    onClick={handleRejectReturn}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <XCircle className="h-4 w-4 mr-2" />
-                    )}
-                    Từ chối
-                  </Button>
                   <Button
                     variant="default"
                     className="bg-green-600 hover:bg-green-700"
