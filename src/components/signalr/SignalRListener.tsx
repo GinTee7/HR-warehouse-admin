@@ -42,6 +42,8 @@ export function SignalRListener() {
         navigatePath = "/warehouse/view-export";
       } else if (noti.title === "Kho Tổng") {
         navigatePath = "/planner/dashboard";
+      } else if (noti.title === "ReturnKho") {
+        navigatePath = "/warehouse/view-export";
       }
 
       toast(noti.message, {
