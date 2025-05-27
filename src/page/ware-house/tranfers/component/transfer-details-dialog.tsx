@@ -3,7 +3,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -26,7 +25,7 @@ import axios from "axios";
 export const formatDate = (dateString: string) => {
   if (!dateString) return "N/A";
   try {
-    return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi });
+    return format(new Date(dateString), "dd/MM/yyyy", { locale: vi });
   } catch (error) {
     console.log("Error parsing date:", error);
     return dateString;
@@ -134,7 +133,6 @@ export function TransferDetailsDialog({
       setIsApproving(false);
     }
   };
-
   const handleImportTransfer = async () => {
     setIsImporting(true);
     try {
@@ -150,7 +148,6 @@ export function TransferDetailsDialog({
       );
 
       if (response.status === 200 || response.status === 201) {
-        toast.success("Nhập điều phối thành công");
         if (onApproved) {
           onApproved();
         }
@@ -171,9 +168,6 @@ export function TransferDetailsDialog({
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Chi tiết yêu cầu chuyển kho</DialogTitle>
-          <DialogDescription>
-            Thông tin chi tiết yêu cầu chuyển kho #{transfer.id}
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -186,7 +180,7 @@ export function TransferDetailsDialog({
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Mã yêu cầu:</p>
-                <p className="font-medium">{transfer.id}</p>
+                <p className="font-medium">{transfer.warehouseTranferCode}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Mã đơn xuất:</p>
