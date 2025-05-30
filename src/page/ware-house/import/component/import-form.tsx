@@ -47,6 +47,7 @@ interface Product {
   taxId: number;
   availableStock: number;
   images: string[];
+  unitCost: number;
 }
 
 interface ImportItem {
@@ -274,7 +275,10 @@ export function ImportForm({ onClose }: ImportFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    if (items.some((item) => Number(item.unitCost) === 0)) {
+      toast.error("Không được để Đơn giá bằng 0 ở bất kỳ sản phẩm nào!");
+      return;
+    }
     // Validate form
     if (!formData.warehouseId || !formData.supplier || items.length === 0) {
       toast.error("Vui lòng điền đầy đủ thông tin bắt buộc");

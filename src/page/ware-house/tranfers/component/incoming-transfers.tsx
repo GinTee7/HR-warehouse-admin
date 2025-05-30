@@ -92,7 +92,7 @@ export function IncomingTransfers({
       color = "text-yellow-800";
       bgColor = "bg-yellow-100";
       hoverColor = "hover:bg-yellow-200";
-      label = "Đang chờ";
+      label = "Chờ xử lí";
     } else if (statusLower === "planned") {
       color = "text-blue-800";
       bgColor = "bg-blue-100";

@@ -3,7 +3,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -25,7 +24,7 @@ import axios from "axios";
 export const formatDate = (dateString: string) => {
   if (!dateString) return "N/A";
   try {
-    return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi });
+    return format(new Date(dateString), "dd/MM/yyyy", { locale: vi });
   } catch (error) {
     console.log("Error parsing date:", error);
     return dateString;
@@ -120,7 +119,7 @@ export function OutgoingTransferDetailsDialog({
     setIsImporting(true);
     try {
       const response = await axios.post(
-        `${API_URL}warehouse-receipts/import-transfer-approved/${transfer.destinationWarehouseId}`,
+        `${API_URL}warehouse-receipts/import-transfer-approved/${transfer.id}`,
         {},
         {
           headers: {
@@ -131,10 +130,10 @@ export function OutgoingTransferDetailsDialog({
       );
 
       if (response.status === 200 || response.status === 201) {
-        toast.success("Nhập điều phối thành công");
         if (onImported) {
           onImported();
         }
+
         onOpenChange(false);
       } else {
         throw new Error("Không thể nhập điều phối");
@@ -152,9 +151,6 @@ export function OutgoingTransferDetailsDialog({
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Chi tiết yêu cầu chuyển kho</DialogTitle>
-          <DialogDescription>
-            Thông tin chi tiết yêu cầu chuyển kho #{transfer.id}
-          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -167,12 +163,9 @@ export function OutgoingTransferDetailsDialog({
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Mã yêu cầu:</p>
-                <p className="font-medium">{transfer.id}</p>
+                <p className="font-medium">{transfer.warehouseTranferCode}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Mã đơn xuất:</p>
-                <p className="font-medium">{transfer.requestExportId}</p>
-              </div>
+
               <div>
                 <p className="text-sm text-muted-foreground">Kho chuyển đi:</p>
                 <p className="font-medium">{transfer.sourceWarehouseName}</p>
