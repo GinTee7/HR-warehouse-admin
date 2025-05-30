@@ -57,6 +57,8 @@ interface ProductDetail {
   taxId: number;
   availableStock: number;
   images: string[];
+  discount: number;
+  finalPrice: number;
 }
 
 export function ImportDetail({ importData }: ImportDetailProps) {
@@ -235,6 +237,8 @@ export function ImportDetail({ importData }: ImportDetailProps) {
         return "Nhập điều phối";
       case "ImportProduction":
         return "Nhập hàng mới";
+      case "AvailableExport":
+        return "Sẵn hàng";
       default:
         return importType;
     }

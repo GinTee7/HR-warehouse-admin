@@ -483,10 +483,6 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Kho hàng</h2>
-      </div>
-
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="inventory">Tồn kho</TabsTrigger>
@@ -506,12 +502,6 @@ export default function InventoryPage() {
                 <div className="text-2xl font-bold">
                   {productSummaries.length}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {productSummaries
-                    .reduce((sum, product) => sum + product.totalQuantity, 0)
-                    .toLocaleString()}{" "}
-                  đơn vị
-                </p>
               </CardContent>
             </Card>
 
@@ -526,13 +516,6 @@ export default function InventoryPage() {
                 <div className="text-2xl font-bold">
                   {inventoryItems.length}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {
-                    inventoryItems.filter((item) => item.status === "PENDING")
-                      .length
-                  }{" "}
-                  lô đang chờ xử lý
-                </p>
               </CardContent>
             </Card>
 
@@ -551,9 +534,6 @@ export default function InventoryPage() {
                     ).length
                   }
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Lô hàng sắp hết hạn trong 3 tháng tới
-                </p>
               </CardContent>
             </Card>
           </div>
@@ -590,7 +570,7 @@ export default function InventoryPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                      <SelectItem value="pending">Chờ xử lý</SelectItem>
+                      <SelectItem value="pending">Chờ xử lí</SelectItem>
                       <SelectItem value="active">Đã duyệt</SelectItem>
                       <SelectItem value="calculating">Đang tính giá</SelectItem>
                       <SelectItem value="expired">Hết hạn</SelectItem>
@@ -702,6 +682,11 @@ export default function InventoryPage() {
                               <Trash2 className="h-4 w-4 mr-1" />
                               Xuất hủy
                             </Button>
+                          )}
+                          {item.status === "ACTIVE" && (
+                            <Badge className="bg-orange-50 text-orange-700 border-orange-200">
+                              Đã tính giá
+                            </Badge>
                           )}
                         </TableCell>
                       </TableRow>
