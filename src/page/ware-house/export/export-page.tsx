@@ -63,35 +63,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { ExportReceipt } from "@/types/export";
 
 // Interfaces remain the same
-interface ExportReceipt {
-  documentNumber: string;
-  documentDate: string;
-  exportDate: string;
-  exportType: string;
-  totalQuantity: number;
-  totalAmount: number;
-  status: string;
-  warehouseId: number;
-  requestExportId: number;
-  orderCode: string;
-  agencyName: string;
-  details: ExportReceiptDetail[];
-  exportWarehouseReceiptId: number;
-}
-
-interface ExportReceiptDetail {
-  warehouseProductId: number;
-  productId: number;
-  productName: string;
-  batchNumber: string;
-  quantity: number;
-  unitPrice: number;
-  totalProductAmount: number;
-  expiryDate: string;
-  exportWarehouseReceiptId?: number; // Make it optional in the main page
-}
 
 export default function ExportPage() {
   const [searchTerm, setSearchTerm] = useState("");

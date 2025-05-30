@@ -60,7 +60,7 @@ export function AccountDetailDialog({
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: vi });
+      return format(new Date(dateString), "dd/MM/yyyy", { locale: vi });
     } catch (error) {
       console.log(error);
 
