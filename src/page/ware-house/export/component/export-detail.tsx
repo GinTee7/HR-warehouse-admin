@@ -45,7 +45,10 @@ interface ExportReceiptDetail {
   unitPrice: number;
   totalProductAmount: number;
   expiryDate: string;
-  exportWarehouseReceiptId?: number; // Make it optional to be more flexible
+  exportWarehouseReceiptId?: number;
+  warehouseName?: string;
+  discount: number;
+  finalPrice: number;
 }
 
 // Interface cho props của component
@@ -64,6 +67,9 @@ interface ExportDetailProps {
     agencyName: string;
     details: ExportReceiptDetail[];
     exportWarehouseReceiptId: number;
+    warehouseName: string;
+    discount: number;
+    finalPrice: number;
   };
   onApproved?: () => void;
 }
@@ -188,6 +194,20 @@ export function ExportDetail({
   // Kiểm tra xem đơn có thể duyệt không
   const canApprove = exportData.status.toLowerCase() === "pending";
 
+  const getImportTypeDisplay = (importType: string) => {
+    switch (importType) {
+      case "ExportCoordination":
+        return "Xuất điều phối";
+      case "ExportSale":
+        return "Xuất bán hàng";
+      case "PendingTransfer":
+        return "Chờ điều phối";
+      case "AvailableExport":
+        return "Sẵn hàng";
+      default:
+        return importType;
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
@@ -218,19 +238,18 @@ export function ExportDetail({
               </div>
               <div className="grid grid-cols-2 gap-1">
                 <div className="text-sm font-medium">Loại xuất:</div>
-                <div className="text-sm">{exportData.exportType}</div>
+                <div className="text-sm">
+                  {getImportTypeDisplay(exportData.exportType)}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-1">
                 <div className="text-sm font-medium">Mã đơn hàng:</div>
                 <div className="text-sm">{exportData.orderCode}</div>
               </div>
-              <div className="grid grid-cols-2 gap-1">
-                <div className="text-sm font-medium">Mã yêu cầu xuất:</div>
-                <div className="text-sm">{exportData.requestExportId}</div>
-              </div>
+
               <div className="grid grid-cols-2 gap-1">
                 <div className="text-sm font-medium">Kho xuất:</div>
-                <div className="text-sm">Kho {exportData.warehouseId}</div>
+                <div className="text-sm">{exportData.warehouseName}</div>
               </div>
               <div className="grid grid-cols-2 gap-1">
                 <div className="text-sm font-medium">Trạng thái:</div>
@@ -304,12 +323,38 @@ export function ExportDetail({
                 ))}
                 <TableRow>
                   <TableCell colSpan={6} className="text-right font-medium">
-                    Tổng giá trị:
+                    Tổng tiền:
                   </TableCell>
-                  <TableCell className="text-right font-bold">
+                  <TableCell
+                    className={`text-right font-bold ${
+                      exportData.discount > 0
+                        ? "line-through text-gray-500"
+                        : ""
+                    }`}
+                  >
                     {exportData.totalAmount.toLocaleString()} VNĐ
                   </TableCell>
                 </TableRow>
+                {exportData.discount > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-right font-medium">
+                      Giảm giá:
+                    </TableCell>
+                    <TableCell className="text-right font-bold">
+                      {exportData.discount}%
+                    </TableCell>
+                  </TableRow>
+                )}
+                {exportData.discount > 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-right font-medium">
+                      Tổng tiền sau giảm giá:
+                    </TableCell>
+                    <TableCell className="text-right font-bold">
+                      {exportData.finalPrice.toLocaleString()} VNĐ
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
