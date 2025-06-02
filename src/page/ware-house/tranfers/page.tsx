@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ArrowUpRight, ArrowDownLeft } from "lucide-react";
 import { toast } from "sonner";
 import type { WarehouseTransfer } from "@/types/warehouse";
@@ -16,6 +10,7 @@ import {
 } from "@/lib/transfer-api";
 import { OutgoingTransfers } from "./component/outgoing-transfers";
 import { IncomingTransfers } from "./component/incoming-transfers";
+import { connection } from "@/lib/signalr-client";
 
 export default function WarehouseTransfersPage() {
   const [activeTab, setActiveTab] = useState("outgoing");
@@ -34,7 +29,6 @@ export default function WarehouseTransfersPage() {
     if (storedWarehouseId) {
       setWarehouseId(Number.parseInt(storedWarehouseId, 10));
     } else {
-      // For demo purposes, default to warehouse ID 1 if not found
       setWarehouseId(1);
       console.warn(
         "warehouseId not found in localStorage, using default value 1"
@@ -64,14 +58,31 @@ export default function WarehouseTransfersPage() {
       setIsLoading(false);
     }
   };
+  // Listen for SignalR notifications
+  useEffect(() => {
+    const handleNewOrder = () => {
+      if (warehouseId) {
+        loadTransferData(warehouseId); // Gọi lại để reload dữ liệu
+      }
+    };
 
+    connection.on("ReceiveNotification", handleNewOrder);
+    return () => {
+      connection.off("ReceiveNotification", handleNewOrder);
+    };
+  }, [warehouseId]);
   const handleTransferApproved = () => {
     if (warehouseId) {
       loadTransferData(warehouseId);
     }
     toast.success("Đã phê duyệt yêu cầu chuyển kho thành công");
   };
-
+  const handleTransferImported = () => {
+    if (warehouseId) {
+      loadTransferData(warehouseId);
+    }
+    toast.success("Nhập điều phối thành công");
+  };
   return (
     <div className="space-y-6 px-2 sm:px-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -83,12 +94,6 @@ export default function WarehouseTransfersPage() {
       </div>
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Yêu cầu chuyển kho</CardTitle>
-          <CardDescription>
-            Xem và quản lý các yêu cầu chuyển kho đi và đến
-          </CardDescription>
-        </CardHeader>
         <CardContent>
           <Tabs
             defaultValue="outgoing"
@@ -119,6 +124,7 @@ export default function WarehouseTransfersPage() {
               <OutgoingTransfers
                 transfers={outgoingTransfers}
                 isLoading={isLoading}
+                onRefresh={handleTransferImported}
               />
             </TabsContent>
             <TabsContent value="incoming" className="mt-0">
