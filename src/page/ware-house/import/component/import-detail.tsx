@@ -244,7 +244,7 @@ export function ImportDetail({ importData }: ImportDetailProps) {
     }
   };
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
       <div className="grid grid-cols-2 gap-4">
         <div>
           <h3 className="text-sm font-medium text-muted-foreground">

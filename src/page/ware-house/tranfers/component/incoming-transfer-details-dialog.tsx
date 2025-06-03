@@ -135,7 +135,10 @@ export function IncomingTransferDetailsDialog({
           <DialogTitle>Chi tiết yêu cầu chuyển kho</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div
+          className="space-y-6"
+          style={{ maxHeight: "80vh", overflowY: "auto" }}
+        >
           {/* Thông tin yêu cầu */}
           <div>
             <h3 className="text-sm font-medium flex items-center">
@@ -222,7 +225,7 @@ export function IncomingTransferDetailsDialog({
                 variant="default"
                 onClick={handleApprove}
                 disabled={isApproving}
-                className="bg-primary"
+                className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {isApproving ? (
                   <>

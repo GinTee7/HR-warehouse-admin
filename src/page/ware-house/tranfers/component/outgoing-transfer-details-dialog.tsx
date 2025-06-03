@@ -153,7 +153,10 @@ export function OutgoingTransferDetailsDialog({
           <DialogTitle>Chi tiết yêu cầu chuyển kho</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div
+          className="space-y-6"
+          style={{ maxHeight: "80vh", overflowY: "auto" }}
+        >
           {/* Thông tin yêu cầu */}
           <div>
             <h3 className="text-sm font-medium flex items-center">

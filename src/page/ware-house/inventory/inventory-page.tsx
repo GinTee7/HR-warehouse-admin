@@ -482,7 +482,7 @@ export default function InventoryPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="inventory">Tồn kho</TabsTrigger>

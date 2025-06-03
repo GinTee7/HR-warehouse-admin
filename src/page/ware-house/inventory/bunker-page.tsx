@@ -128,7 +128,7 @@ export default function BunkerPage() {
   ).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
       <div></div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
