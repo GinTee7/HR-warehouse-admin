@@ -372,7 +372,6 @@ export function ReturnRequestsList({
                 <TableHead className="w-[180px]">Mã phiếu</TableHead>
                 <TableHead className="w-[100px]">ID</TableHead>
                 <TableHead className="w-[150px]">Ngày tạo</TableHead>
-                <TableHead className="w-[150px]">Ghi chú</TableHead>
                 {!isTablet && <TableHead>Sản phẩm</TableHead>}
                 <TableHead className="text-center">Trạng thái</TableHead>
                 <TableHead className="text-right">Thao tác</TableHead>
@@ -425,7 +424,6 @@ export function ReturnRequestsList({
                         {formatDate(request.receiptDate)}
                       </div>
                     </TableCell>
-                    <TableCell>{request.note || "N/A"}</TableCell>
                     {!isTablet && (
                       <TableCell>
                         <div className="flex items-center">

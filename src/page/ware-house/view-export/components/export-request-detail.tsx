@@ -122,7 +122,7 @@ export function ExportRequestDetail({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
       <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         <Card>
           <CardContent className="pt-6">

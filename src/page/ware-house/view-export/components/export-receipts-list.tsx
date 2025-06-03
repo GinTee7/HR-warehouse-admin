@@ -245,10 +245,10 @@ export function ExportReceiptsList() {
           Đang yêu cầu
         </Badge>
       );
-    } else if (statusLower === "cancelled") {
+    } else if (statusLower === "canceled") {
       return (
         <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
-          Đã hủy
+          Từ chối
         </Badge>
       );
     } else if (statusLower === "partially_exported") {
@@ -635,7 +635,10 @@ export function ExportReceiptsList() {
             <DialogHeader>
               <DialogTitle>Chi tiết phiếu xuất kho</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
+            <div
+              className="space-y-6"
+              style={{ maxHeight: "80vh", overflowY: "auto" }}
+            >
               {/* Import and use the ExportDetail component */}
               {selectedReceipt && (
                 <div className="mt-4">

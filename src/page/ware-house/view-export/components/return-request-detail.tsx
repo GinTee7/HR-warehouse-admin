@@ -76,7 +76,7 @@ export function ReturnRequestDetail({ request }: ReturnRequestDetailProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
       <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -116,9 +116,7 @@ export function ReturnRequestDetail({ request }: ReturnRequestDetailProps) {
           </CardContent>
         </Card>
       </div>
-
       <Separator />
-
       <div>
         <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center">
           <Package className="h-4 w-4 mr-2" />
