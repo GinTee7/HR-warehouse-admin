@@ -872,7 +872,10 @@ export default function PaymentHistoryPage() {
                 {selectedHistory.serieNumber}
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-6">
+            <div
+              className="space-y-6"
+              style={{ maxHeight: "80vh", overflowY: "auto" }}
+            >
               {/* Thông tin giao dịch */}
               <div>
                 <h3 className="text-sm font-medium flex items-center">

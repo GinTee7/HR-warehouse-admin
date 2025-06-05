@@ -129,7 +129,7 @@ export default function WarehouseDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
       <div>
         <h2 className="text-2xl font-bold tracking-tight">
           Tổng quan kho hàng

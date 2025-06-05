@@ -51,7 +51,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
       <div className="flex items-center space-x-4">
         <Avatar className="h-20 w-20">
           <AvatarImage src={profile.avatar} alt={profile.fullName} />
