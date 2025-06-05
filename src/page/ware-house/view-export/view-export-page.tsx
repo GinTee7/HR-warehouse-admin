@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { FileOutput, ArchiveRestore } from "lucide-react";
 import { toast } from "sonner";
 import { ReturnRequestsList } from "./components/return-requests-list";
@@ -69,9 +69,6 @@ export default function ViewExportPage() {
       </div>
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Quản lý xuất kho</CardTitle>
-        </CardHeader>
         <CardContent>
           <Tabs
             defaultValue="export-receipts"

@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { ReturnWarehouseReceipt } from "@/types/warehouse";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 interface ReturnRequestDetailProps {
   request: ReturnWarehouseReceipt;
@@ -102,6 +103,12 @@ export function ReturnRequestDetail({ request }: ReturnRequestDetailProps) {
                   {request.returnRequestCode || "N/A"}
                 </div>
               </div>
+              {request.status?.toLowerCase() === "rejected" && (
+                <div className="grid grid-cols-2 gap-1">
+                  <div className="text-sm font-medium">Lý do:</div>
+                  <div className="text-sm">{request.reason || "N/A"}</div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-1">
                 <div className="text-sm font-medium">Trạng thái:</div>
                 <div className="text-sm">{getStatusBadge(request.status)}</div>
@@ -116,6 +123,36 @@ export function ReturnRequestDetail({ request }: ReturnRequestDetailProps) {
           </CardContent>
         </Card>
       </div>
+      {request.images && request.images.length > 0 && (
+        <Card>
+          <CardContent className="pt-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center">
+              <FileText className="h-4 w-4 mr-2" />
+              Ảnh liên quan
+            </h3>
+            <div className="flex gap-4 overflow-x-auto">
+              {request.images.map((img) => (
+                <Dialog key={img.returnRequestImageId}>
+                  <DialogTrigger asChild>
+                    <img
+                      src={img.imageUrl}
+                      alt={`Ảnh trả hàng ${request.receiptCode}`}
+                      className="h-24 w-auto rounded border cursor-pointer"
+                    />
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl max-h-[90vh] p-0">
+                    <img
+                      src={img.imageUrl}
+                      alt={`Ảnh trả hàng ${request.receiptCode}`}
+                      className="w-full max-h-[90vh] object-contain rounded"
+                    />
+                  </DialogContent>
+                </Dialog>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
       <Separator />
       <div>
         <h3 className="text-sm font-medium text-muted-foreground mb-4 flex items-center">

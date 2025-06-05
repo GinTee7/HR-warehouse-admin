@@ -37,6 +37,7 @@ import {
   ClipboardList,
   RefreshCcw,
   CheckCircle,
+  CircleX,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -90,6 +91,15 @@ export function ReturnRequestsList({
 
   const token = localStorage.getItem("token");
   const API_URL = import.meta.env.VITE_API_URL || "https://api.example.com/";
+
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+
+  // Mở modal từ chối
+  const handleRejectReturn = () => {
+    setRejectReason("");
+    setIsRejectModalOpen(true);
+  };
 
   // Update filtered requests when returnRequests changes
   useEffect(() => {
@@ -216,6 +226,39 @@ export function ReturnRequestsList({
       }
     } catch (error: any) {
       console.error("Error approving return:", error);
+      toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Xử lý submit từ chối
+  const handleSubmitReject = async () => {
+    if (!selectedRequest) return;
+    if (!rejectReason.trim()) {
+      toast.error("Vui lòng nhập lý do từ chối");
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      const response = await axios.post(
+        `${API_URL}returns/reject-WarehouseReturn-Request/${selectedRequest.returnWarehouseReceiptId}`,
+        { reason: rejectReason },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        onProcessed();
+        setIsRejectModalOpen(false);
+        setIsDetailOpen(false);
+      } else {
+        throw new Error("Không thể từ chối yêu cầu trả hàng");
+      }
+    } catch (error: any) {
+      console.error("Error rejecting return:", error);
       toast.error(error.response?.data?.message || "Đã xảy ra lỗi");
     } finally {
       setIsProcessing(false);
@@ -584,6 +627,18 @@ export function ReturnRequestsList({
                     )}
                     Duyệt yêu cầu
                   </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleRejectReturn}
+                    disabled={isProcessing}
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <CircleX className="h-4 w-4 mr-2" />
+                    )}
+                    Từ chối
+                  </Button>
                 </>
               )}
               <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
@@ -593,6 +648,43 @@ export function ReturnRequestsList({
           </DialogContent>
         </Dialog>
       )}
+      {/* Modal nhập lý do từ chối */}
+      <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nhập lý do từ chối</DialogTitle>
+          </DialogHeader>
+          <div>
+            <Input
+              placeholder="Nhập lý do từ chối..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              disabled={isProcessing}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="destructive"
+              onClick={handleSubmitReject}
+              disabled={isProcessing}
+            >
+              {isProcessing ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <CircleX className="h-4 w-4 mr-2" />
+              )}
+              Gửi
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsRejectModalOpen(false)}
+              disabled={isProcessing}
+            >
+              Hủy
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
