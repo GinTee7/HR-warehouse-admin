@@ -399,7 +399,7 @@ export function ImportDetail({ importData }: ImportDetailProps) {
                   className="font-bold max-w-[120px] truncate"
                   title={`${importData.totalPrice.toLocaleString()} đ`}
                 >
-                  {importData.totalPrice.toLocaleString()} VNĐ
+                  {importData.totalPrice.toLocaleString()} đ
                 </TableCell>
                 <TableCell></TableCell>
               </TableRow>

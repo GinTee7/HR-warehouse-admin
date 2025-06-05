@@ -1078,7 +1078,7 @@ export default function InventoryPage() {
                     style: "currency",
                     currency: "VND",
                   })
-                  .replace("₫", "đ") || "N/A"}
+                  .replace("đ", "đ") || "N/A"}
               </div>
             </div>
 
@@ -1114,7 +1114,7 @@ export default function InventoryPage() {
                       style: "currency",
                       currency: "VND",
                     })
-                    .replace("₫", "đ")}
+                    .replace("đ", "đ")}
                 </div>
               </div>
             )}

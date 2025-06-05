@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import {
   Loader2,
   Package,
@@ -18,6 +18,8 @@ import {
   AlertCircle,
   Calendar,
   Download,
+  XCircle,
+  MessageSquareWarning,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,12 +33,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 // Interface cho chi tiết phiếu xuất
-interface ExportReceiptDetail {
+interface ExportReceiptDetailInterface {
+  // Renamed to avoid conflict with component name
   warehouseProductId: number;
   productId: number;
   productName: string;
@@ -49,6 +53,7 @@ interface ExportReceiptDetail {
   warehouseName?: string;
   discount: number;
   finalPrice: number;
+  reason?: string;
 }
 
 // Interface cho props của component
@@ -65,32 +70,46 @@ interface ExportDetailProps {
     requestExportId: number;
     orderCode: string;
     agencyName: string;
-    details: ExportReceiptDetail[];
+    details: ExportReceiptDetailInterface[];
     exportWarehouseReceiptId: number;
     warehouseName: string;
+    reason?: string;
     discount: number;
     finalPrice: number;
   };
+  onActionCompleted?: () => void;
   onApproved?: () => void;
 }
 
 export function ExportDetail({
+  // Component name is ExportDetail
   exportData: initialExportData,
-  onApproved,
+  onActionCompleted,
 }: ExportDetailProps) {
   const [exportData, setExportData] = useState(initialExportData);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false); // For loading product details
   const [isApproving, setIsApproving] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  const [selectedDetail, setSelectedDetail] =
-    useState<ExportReceiptDetail | null>(null);
+  const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  // const [selectedDetail, setSelectedDetail] = useState<ExportReceiptDetailInterface | null>(null); // Not actively used for main actions
 
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+  const REJECT_API_URL = "https://minhlong.mlhr.org";
 
-  // Format date for display
+  // **Important:** Sync state if initialExportData prop changes
+  useEffect(() => {
+    console.log(
+      "ExportDetail: initialExportData prop received:",
+      initialExportData
+    );
+    setExportData(initialExportData);
+  }, [initialExportData]);
+
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
     try {
@@ -101,13 +120,13 @@ export function ExportDetail({
     }
   };
 
-  // Get status badge
   const getStatusBadge = (status: string) => {
     const statusLower = status.toLowerCase();
     if (statusLower === "completed" || statusLower === "approved") {
       return (
         <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
-          Đã giao hàng
+          <CheckCircle className="h-3.5 w-3.5 mr-1" />
+          Đã hoàn thành
         </Badge>
       );
     } else if (statusLower === "pending") {
@@ -117,11 +136,11 @@ export function ExportDetail({
           Đang xử lý
         </Badge>
       );
-    } else if (statusLower === "cancelled" || statusLower === "rejected") {
+    } else if (statusLower === "canceled" || statusLower === "rejected") {
       return (
         <Badge className="bg-red-100 text-red-800 hover:bg-red-200">
           <AlertCircle className="h-3.5 w-3.5 mr-1" />
-          Đã hủy
+          Từ chối
         </Badge>
       );
     } else {
@@ -133,21 +152,27 @@ export function ExportDetail({
     }
   };
 
-  // Mở dialog duyệt đơn
-  const openApprovalDialog = (detail: ExportReceiptDetail) => {
-    setSelectedDetail(detail);
+  const openApprovalDialog = () => {
     setIsApprovalDialogOpen(true);
   };
 
-  // Xử lý duyệt đơn - Cập nhật để sử dụng documentNumber
+  const openRejectDialog = () => {
+    setRejectionReason("");
+    setIsRejectDialogOpen(true);
+  };
+
   const handleApprove = async () => {
-    if (!selectedDetail) return;
-    setIsLoading(false);
+    // setIsLoading(false); // This line was incorrect; setIsLoading is for product details loading.
     setIsApproving(true);
+    console.log(
+      "ExportDetail: Handling Approve. Using exportWarehouseReceiptId:",
+      exportData.exportWarehouseReceiptId,
+      "Current full exportData:",
+      exportData
+    );
     try {
-      // Gọi API duyệt đơn với exportWarehouseReceiptId
       const response = await axios.post(
-        `${API_URL}WarehouseExport/finalize-export-sale/${exportData.exportWarehouseReceiptId}`,
+        `${API_BASE_URL}WarehouseExport/finalize-export-sale/${exportData.exportWarehouseReceiptId}`,
         {},
         {
           headers: {
@@ -164,16 +189,13 @@ export function ExportDetail({
       ) {
         toast.success("Duyệt đơn xuất kho thành công");
         setIsApprovalDialogOpen(false);
-
-        // Cập nhật trạng thái ngay lập tức
         setExportData((prevData) => ({
           ...prevData,
           status: "APPROVED",
         }));
-
-        // Gọi callback để cập nhật UI
-        if (onApproved) {
-          onApproved();
+        window.location.reload();
+        if (onActionCompleted) {
+          onActionCompleted();
         }
       } else {
         throw new Error("Duyệt đơn xuất kho thất bại");
@@ -181,7 +203,7 @@ export function ExportDetail({
     } catch (error: any) {
       console.error(
         "Error approving export:",
-        error?.response?.data?.message || "Unknown error"
+        error?.response?.data?.message || error.message || "Unknown error"
       );
       toast.error(
         error?.response?.data?.message || "Đã xảy ra lỗi khi duyệt đơn xuất kho"
@@ -191,8 +213,65 @@ export function ExportDetail({
     }
   };
 
-  // Kiểm tra xem đơn có thể duyệt không
-  const canApprove = exportData.status.toLowerCase() === "pending";
+  const handleReject = async () => {
+    if (!rejectionReason.trim()) {
+      toast.error("Vui lòng nhập lý do từ chối.");
+      return;
+    }
+    setIsRejecting(true);
+    console.log(
+      "ExportDetail: Handling Reject. Using requestExportId:",
+      exportData.requestExportId,
+      "Current full exportData:",
+      exportData
+    );
+    try {
+      const apiUrl = `${REJECT_API_URL}/api/WarehouseExport/cancel-WarehouseRequest-Export`;
+      const payload = {
+        warehouseRequestExportId: exportData.exportWarehouseReceiptId,
+        reason: rejectionReason,
+      };
+
+      const response = await axios.post(apiUrl, payload, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (
+        response.status === 200 ||
+        response.status === 201 ||
+        response.status === 204
+      ) {
+        toast.success("Từ chối phiếu xuất thành công.");
+        window.location.reload();
+        setIsRejectDialogOpen(false);
+        setExportData((prevData) => ({
+          ...prevData,
+          status: "CANCELLED",
+        }));
+        if (onActionCompleted) {
+          onActionCompleted();
+        }
+      } else {
+        toast.error(response.data?.message || "Từ chối phiếu xuất thất bại.");
+      }
+    } catch (error: any) {
+      console.error(
+        "Error rejecting export request:",
+        error?.response?.data || error.message
+      );
+      toast.error(
+        error?.response?.data?.message ||
+          "Đã xảy ra lỗi khi từ chối phiếu xuất."
+      );
+    } finally {
+      setIsRejecting(false);
+    }
+  };
+
+  const canProcess = exportData.status.toLowerCase() === "pending";
 
   const getImportTypeDisplay = (importType: string) => {
     switch (importType) {
@@ -208,17 +287,22 @@ export function ExportDetail({
         return importType;
     }
   };
+
+  // Check if exportData is available before rendering to prevent errors
+  if (!exportData) {
+    return (
+      <div className="flex justify-center items-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2">Đang tải dữ liệu phiếu xuất...</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
       <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="flex justify-between items-start mb-4">
-              <h3 className="text-sm font-medium text-muted-foreground flex items-center">
-                <FileText className="h-4 w-4 mr-2" />
-                Thông tin phiếu xuất
-              </h3>
-            </div>
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-1">
                 <div className="text-sm font-medium">Mã phiếu xuất:</div>
@@ -257,6 +341,14 @@ export function ExportDetail({
                   {getStatusBadge(exportData.status)}
                 </div>
               </div>
+              {exportData.status.toLowerCase() === "canceled" && (
+                <div className="grid grid-cols-2 gap-1">
+                  <div className="text-sm font-medium">Lý do:</div>
+                  <div className="text-sm break-words whitespace-pre-line">
+                    {exportData.reason}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -290,7 +382,9 @@ export function ExportDetail({
               </TableHeader>
               <TableBody>
                 {exportData.details.map((item, index) => (
-                  <TableRow key={index}>
+                  <TableRow key={`${item.productId}-${index}`}>
+                    {" "}
+                    {/* More robust key */}
                     <TableCell className="font-medium">
                       {item.productId}
                     </TableCell>
@@ -332,7 +426,7 @@ export function ExportDetail({
                         : ""
                     }`}
                   >
-                    {exportData.totalAmount.toLocaleString()} VNĐ
+                    {exportData.totalAmount.toLocaleString()} đ
                   </TableCell>
                 </TableRow>
                 {exportData.discount > 0 && (
@@ -351,7 +445,7 @@ export function ExportDetail({
                       Tổng tiền sau giảm giá:
                     </TableCell>
                     <TableCell className="text-right font-bold">
-                      {exportData.finalPrice.toLocaleString()} VNĐ
+                      {exportData.finalPrice.toLocaleString()} đ
                     </TableCell>
                   </TableRow>
                 )}
@@ -369,21 +463,28 @@ export function ExportDetail({
             <Button
               variant="default"
               className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => navigate(`/warehouse/transfer-request`)}
+              onClick={() => navigate("/warehouse/transfer-request")}
             >
               <Download className="h-4 w-4 mr-2" />
               Nhập điều phối
             </Button>
           )}
-          {canApprove && (
-            <Button
-              variant="default"
-              className="bg-green-600 hover:bg-green-700"
-              onClick={() => openApprovalDialog(exportData.details[0])}
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Duyệt đơn xuất kho
-            </Button>
+          {canProcess && (
+            <>
+              <Button
+                variant="default"
+                className="bg-green-600 hover:bg-green-700 mr-2"
+                onClick={openApprovalDialog}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Duyệt đơn xuất kho
+              </Button>
+
+              <Button variant="destructive" onClick={openRejectDialog}>
+                <XCircle className="h-4 w-4 mr-2" />
+                Từ chối
+              </Button>
+            </>
           )}
         </div>
         <h3 className="text-sm font-medium text-muted-foreground mb-2 flex items-center">
@@ -394,6 +495,9 @@ export function ExportDetail({
           {exportData.status.toLowerCase() === "completed" ||
           exportData.status.toLowerCase() === "approved"
             ? "Hàng đã được kiểm tra chất lượng và xuất kho thành công."
+            : exportData.status.toLowerCase() === "cancelled" ||
+              exportData.status.toLowerCase() === "rejected"
+            ? "Phiếu xuất đã bị hủy/từ chối."
             : "Phiếu xuất đang trong quá trình xử lý. Vui lòng kiểm tra lại sau."}
         </p>
       </div>
@@ -407,7 +511,8 @@ export function ExportDetail({
           <DialogHeader>
             <DialogTitle>Duyệt đơn xuất kho</DialogTitle>
             <DialogDescription>
-              Xác nhận duyệt phiếu xuất này?
+              Xác nhận duyệt phiếu xuất này? (ID:{" "}
+              {exportData.exportWarehouseReceiptId})
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -418,12 +523,6 @@ export function ExportDetail({
               <div className="col-span-3 font-medium">
                 {exportData.documentNumber}
               </div>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="documentNumber" className="text-right">
-                Số phiếu
-              </Label>
-              <div className="col-span-3">{exportData.documentNumber}</div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="totalQuantity" className="text-right">
@@ -463,6 +562,66 @@ export function ExportDetail({
                 <>
                   <CheckCircle className="h-4 w-4 mr-2" />
                   Xác nhận duyệt
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog từ chối đơn xuất kho */}
+      <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Từ chối phiếu xuất kho</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn từ chối phiếu xuất này không? Vui lòng cung
+              cấp lý do.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="rejectReason" className="text-right">
+                <MessageSquareWarning className="inline h-4 w-4 mr-1" />
+                Lý do từ chối
+              </Label>
+              <Textarea
+                id="rejectReason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="col-span-3"
+                placeholder="Nhập lý do từ chối..."
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">Mã phiếu xuất</Label>
+              <div className="col-span-3 font-medium">
+                {exportData.documentNumber}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRejectDialogOpen(false)}
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              onClick={handleReject}
+              disabled={isRejecting || !rejectionReason.trim()}
+              variant="destructive"
+            >
+              {isRejecting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Xác nhận từ chối
                 </>
               )}
             </Button>
