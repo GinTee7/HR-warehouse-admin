@@ -1,6 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Menu, BarChart3, Eye } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  Eye,
+  LayoutDashboard,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -8,7 +14,7 @@ const menuItems = [
   {
     title: "Tổng quan",
     path: "/planner/dashboard",
-    icon: <BarChart3 className="h-5 w-5" />,
+    icon: <LayoutDashboard className="h-5 w-5" />,
   },
   {
     title: "Xem sản phẩm trong kho",

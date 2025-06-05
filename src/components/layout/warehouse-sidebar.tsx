@@ -7,11 +7,11 @@ import {
   ChevronRight,
   Menu,
   Warehouse,
-  BarChart3,
   PackagePlus,
   Eye,
   PackageSearch,
   Import,
+  LayoutDashboard,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ const menuItems = [
   {
     title: "Tổng quan",
     path: "/warehouse/dashboard",
-    icon: <BarChart3 className="h-5 w-5" />,
+    icon: <LayoutDashboard className="h-5 w-5" />,
   },
   {
     title: "Kho hàng",

@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
+  LayoutDashboard,
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ const menuItems = [
   {
     title: "Tổng quan",
     path: "/admin/dashboard",
-    icon: <Users className="h-5 w-5" />,
+    icon: <LayoutDashboard className="h-5 w-5" />,
   },
   {
     title: "Quản lí tài khoản",
