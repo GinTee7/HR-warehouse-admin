@@ -149,4 +149,11 @@ export interface ReturnWarehouseReceipt {
   status: string; // "Pending" | "Imported" etc.
   details: ReturnWarehouseReceiptDetail[];
   returnRequestCode: string;
+  reason: string;
+  images: ImagesResponse[];
+}
+
+interface ImagesResponse {
+  imageUrl: string;
+  returnRequestImageId: number;
 }

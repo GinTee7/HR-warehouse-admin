@@ -94,20 +94,11 @@ export default function LoginPage() {
       const response = await authService.login(data.username, data.password);
       const token = response.token.token;
 
-      // Decode token
-      const decoded: any = jwtDecode(token);
-      const userId =
-        decoded[
-          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-        ];
-
       // Store token and role
       if (data.rememberMe) {
-        localStorage.setItem("userId", userId);
         localStorage.setItem("token", token);
         localStorage.setItem("Role", response.token.roleId.toString());
       } else {
-        localStorage.setItem("userId", userId);
         localStorage.setItem("token", token);
         localStorage.setItem("Role", response.token.roleId.toString());
       }

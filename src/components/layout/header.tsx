@@ -97,11 +97,16 @@ export function Header({ onMenuClick }: HeaderProps) {
     const fetchUserData = async () => {
       try {
         // Lấy userId từ localStorage
-        const userId = localStorage.getItem("userId");
+        const token = localStorage.getItem("token");
 
-        if (userId) {
+        if (token) {
           const response = await axios.get(
-            `https://minhlong.mlhr.org/api/get-info-user/${userId}`
+            `https://minhlong.mlhr.org/api/get-info-user/`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
           setUserData(response.data);
         }
