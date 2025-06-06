@@ -30,7 +30,6 @@ import {
 import { toast } from "sonner";
 import authService from "@/services/auth-service";
 import { Checkbox } from "@/components/ui/checkbox";
-import { jwtDecode } from "jwt-decode";
 import { cn } from "@/lib/utils";
 
 // Form schema for validation
@@ -126,6 +125,7 @@ export default function LoginPage() {
           localStorage.removeItem("Role");
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(
@@ -232,21 +232,17 @@ export default function LoginPage() {
               <div className="p-2.5 bg-white/20 rounded-xl shadow-lg">
                 <Warehouse className="h-8 w-8" />
               </div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                WarehouseManager
-              </h1>
             </div>
 
             <h2
               className={cn(
-                "text-3xl lg:text-4xl xl:text-5xl font-bold mb-6 leading-tight transition-all duration-1000 delay-300",
+                "text-3xl lg:text-3xl xl:text-4xl font-bold mb-6 leading-tight transition-all duration-1000 delay-300",
                 mounted
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-8"
               )}
             >
-              Hệ thống quản lý kho{" "}
-              <span className="text-cyan-300">thông minh</span>
+              Hệ thống quản lý kho
             </h2>
 
             <p

@@ -89,6 +89,8 @@ interface DamagedStock {
   status: string;
   warehouseId: number;
   warehouseName: string;
+  batchCode: string;
+  orderCode: string;
 }
 
 export default function InventoryPage() {
@@ -869,6 +871,7 @@ export default function InventoryPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Mã tham chiếu</TableHead>
                     <TableHead>Tên sản phẩm</TableHead>
                     <TableHead>Số lượng</TableHead>
                     <TableHead>Lý do</TableHead>
@@ -895,7 +898,14 @@ export default function InventoryPage() {
                   ) : (
                     filteredDamagedStocks.map((item, index) => (
                       <TableRow key={`damaged-${item.damagedStockId}-${index}`}>
+                        <TableCell>
+                          {" "}
+                          {item.status === "Return"
+                            ? item.orderCode
+                            : item.batchCode}
+                        </TableCell>
                         <TableCell>{item.productName}</TableCell>
+
                         <TableCell>{item.quantity.toLocaleString()}</TableCell>
                         <TableCell>{item.reason}</TableCell>
                         <TableCell>{formatDate(item.createdAt)}</TableCell>

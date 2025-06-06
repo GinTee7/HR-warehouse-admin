@@ -72,7 +72,7 @@ export function AccountDetailDialog({
     <>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>{children}</DialogTrigger>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[700px]">
           <DialogHeader className="border-b pb-3">
             <div className="flex items-center justify-between">
               <div>
