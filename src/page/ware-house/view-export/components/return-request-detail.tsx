@@ -92,7 +92,10 @@ export function ReturnRequestDetail({ request }: ReturnRequestDetailProps) {
                   {request.receiptCode}
                 </div>
               </div>
-
+              <div className="grid grid-cols-2 gap-1">
+                <div className="text-sm font-medium">Mã đơn hàng:</div>
+                <div className="text-sm ">{request.orderCode}</div>
+              </div>
               <div className="grid grid-cols-2 gap-1">
                 <div className="text-sm font-medium">Ngày tạo:</div>
                 <div className="text-sm">{formatDate(request.receiptDate)}</div>
