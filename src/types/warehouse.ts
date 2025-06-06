@@ -151,6 +151,7 @@ export interface ReturnWarehouseReceipt {
   returnRequestCode: string;
   reason: string;
   images: ImagesResponse[];
+  orderCode: string;
 }
 
 interface ImagesResponse {

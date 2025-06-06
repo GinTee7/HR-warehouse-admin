@@ -21,6 +21,7 @@ interface UserData {
   phone: string;
   status: boolean;
   verifyEmail: boolean;
+  name: string;
 }
 
 // Định nghĩa kiểu dữ liệu cho notification
@@ -393,7 +394,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                         </Avatar.Root>
                         <div>
                           <p className="text-sm font-medium">
-                            {userData?.username || "User"}
+                            {userData?.name || "User"}
                           </p>
                           <p className="text-xs text-gray-500">
                             {userData?.email || "user@example.com"}
@@ -401,11 +402,6 @@ export function Header({ onMenuClick }: HeaderProps) {
                         </div>
                       </div>
                       <div className="mt-2">
-                        <span
-                          className={`inline-block px-2 py-1 text-xs rounded-full ${getUserTypeColor()}`}
-                        >
-                          {userData?.userType || "USER"}
-                        </span>
                         {userData?.status && (
                           <span className="inline-block ml-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
                             Đang hoạt động

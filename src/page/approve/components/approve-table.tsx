@@ -64,7 +64,11 @@ export function ApproveTable({
             >
               <div className="font-medium">{account.username}</div>
               <div className="text-gray-600">{account.email}</div>
-              <div>{account.fullName}</div>
+              <div>
+                {account.fullName === "Unknow"
+                  ? account.agencyName
+                  : account.fullName}
+              </div>
               <div>
                 {account.userType === "EMPLOYEE" &&
                 account.department === "SALES MANAGER" ? (
