@@ -40,7 +40,6 @@ import { useNavigate } from "react-router-dom";
 
 // Interface cho chi tiết phiếu xuất
 interface ExportReceiptDetailInterface {
-  // Renamed to avoid conflict with component name
   warehouseProductId: number;
   productId: number;
   productName: string;
@@ -54,6 +53,7 @@ interface ExportReceiptDetailInterface {
   discount: number;
   finalPrice: number;
   reason?: string;
+  productCode?: string;
 }
 
 // Interface cho props của component
@@ -93,7 +93,6 @@ export function ExportDetail({
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
-  // const [selectedDetail, setSelectedDetail] = useState<ExportReceiptDetailInterface | null>(null); // Not actively used for main actions
 
   const navigate = useNavigate();
 
@@ -386,7 +385,7 @@ export function ExportDetail({
                     {" "}
                     {/* More robust key */}
                     <TableCell className="font-medium">
-                      {item.productId}
+                      {item.productCode}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
@@ -511,8 +510,7 @@ export function ExportDetail({
           <DialogHeader>
             <DialogTitle>Duyệt đơn xuất kho</DialogTitle>
             <DialogDescription>
-              Xác nhận duyệt phiếu xuất này? (ID:{" "}
-              {exportData.exportWarehouseReceiptId})
+              Xác nhận duyệt phiếu xuất này?
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -537,7 +535,7 @@ export function ExportDetail({
                 Tổng giá trị
               </Label>
               <div className="col-span-3">
-                {exportData.totalAmount.toLocaleString()} đ
+                {exportData.finalPrice.toLocaleString()} đ
               </div>
             </div>
           </div>

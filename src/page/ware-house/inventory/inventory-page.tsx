@@ -38,7 +38,6 @@ import {
   Search,
   Filter,
   Package,
-  AlertCircle,
   Calculator,
   Loader2,
   Trash2,
@@ -131,6 +130,14 @@ export default function InventoryPage() {
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [batchToCancel, setBatchToCancel] = useState<number | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editBatch, setEditBatch] = useState<InventoryItem | null>(null);
+  const [editQuantity, setEditQuantity] = useState<number>(0);
+  const [editProfitMargin, setEditProfitMargin] = useState<number>(0);
+  const [editDateOfManufacture, setEditDateOfManufacture] =
+    useState<string>("");
+  const [isEditSubmitting, setIsEditSubmitting] = useState(false);
+
   // Fetch inventory data
   const fetchInventory = async () => {
     setIsLoading(true);
@@ -396,14 +403,6 @@ export default function InventoryPage() {
     }
   };
 
-  // Check if a product is near expiry (within 3 months)
-  const isNearExpiry = (dateString: string) => {
-    const expiryDate = new Date(dateString);
-    const threeMonthsFromNow = new Date();
-    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
-    return expiryDate <= threeMonthsFromNow;
-  };
-
   const openPricingDialog = (item: InventoryItem) => {
     setSelectedBatch(item);
     setProfitMargin(item.profitMarginPercent?.toString() || "10");
@@ -482,7 +481,12 @@ export default function InventoryPage() {
       setIsLoading(false);
     }
   };
-
+  function getTodayVN() {
+    const now = new Date();
+    // Chuyển sang VN (GMT+7)
+    now.setHours(now.getHours() + 7 - now.getTimezoneOffset() / 60);
+    return now.toISOString().slice(0, 10);
+  }
   return (
     <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -492,7 +496,7 @@ export default function InventoryPage() {
         </TabsList>
 
         <TabsContent value="inventory">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-5">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 mb-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -517,24 +521,6 @@ export default function InventoryPage() {
               <CardContent>
                 <div className="text-2xl font-bold">
                   {inventoryItems.length}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Sắp hết hạn
-                </CardTitle>
-                <AlertCircle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {
-                    inventoryItems.filter((item) =>
-                      isNearExpiry(item.expiryDate)
-                    ).length
-                  }
                 </div>
               </CardContent>
             </Card>
@@ -612,6 +598,7 @@ export default function InventoryPage() {
                     <TableHead>Giá bán</TableHead>
                     <TableHead>Trạng thái</TableHead>
                     <TableHead>Thao tác</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -690,6 +677,24 @@ export default function InventoryPage() {
                               Đã tính giá
                             </Badge>
                           )}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="ml-2"
+                            onClick={() => {
+                              setEditBatch(item);
+                              setEditQuantity(item.quantity);
+                              setEditProfitMargin(item.profitMarginPercent);
+                              setEditDateOfManufacture(
+                                item.dateOfManufacture.slice(0, 10)
+                              );
+                              setIsEditDialogOpen(true);
+                            }}
+                          >
+                            <span className="mr-1">📝</span>Chỉnh sửa
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))
@@ -1209,6 +1214,112 @@ export default function InventoryPage() {
                   <Trash2 className="h-4 w-4 mr-2" />
                   Xác nhận xuất hủy
                 </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden rounded-lg">
+          <div className="bg-blue-500 p-5">
+            <DialogHeader className="text-white p-0 space-y-1">
+              <DialogTitle className="text-xl font-bold">
+                Chỉnh sửa lô hàng
+              </DialogTitle>
+              <DialogDescription className="text-white/90">
+                Chỉnh sửa thông tin cho lô <b>{editBatch?.batchCode}</b>
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="flex items-center">
+              <Label className="w-[120px] text-right text-gray-500 pr-4">
+                Số lượng
+              </Label>
+              <Input
+                type="number"
+                value={editQuantity}
+                min={0}
+                onChange={(e) => setEditQuantity(Number(e.target.value))}
+              />
+            </div>
+            <div className="flex items-center">
+              <Label className="w-[120px] text-right text-gray-500 pr-4">
+                Tỷ lệ lợi nhuận (%)
+              </Label>
+              <Input
+                type="number"
+                placeholder="Nhập % lợi nhuận..."
+                value={editProfitMargin === 0 ? "" : editProfitMargin}
+                min={1}
+                max={100}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/^0+/, ""); // loại bỏ tất cả số 0 đầu
+                  setEditProfitMargin(value === "" ? 0 : Number(value));
+                }}
+              />
+            </div>
+            <div className="flex items-center">
+              <Label className="w-[120px] text-right text-gray-500 pr-4">
+                Ngày sản xuất
+              </Label>
+              <Input
+                type="date"
+                value={editDateOfManufacture}
+                max={getTodayVN()}
+                onChange={(e) => setEditDateOfManufacture(e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 p-4 border-t border-gray-100">
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+              className="px-6"
+            >
+              Hủy
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!editBatch) return;
+                setIsEditSubmitting(true);
+                try {
+                  const payload = {
+                    quantity: editQuantity,
+                    profitMarginPercent: editProfitMargin,
+                    dateOfManufacture: new Date(
+                      editDateOfManufacture
+                    ).toISOString(),
+                  };
+                  const response = await axios.put(
+                    `https://minhlong.mlhr.org/api/batch/batches/${editBatch.batchId}`,
+                    payload,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  );
+                  if (response.status === 200 || response.status === 204) {
+                    toast.success("Cập nhật lô hàng thành công");
+                    setIsEditDialogOpen(false);
+                    fetchInventory();
+                  } else {
+                    throw new Error("Không thể cập nhật lô hàng");
+                  }
+                } catch (error) {
+                  console.log(error);
+                  toast.error("Không thể cập nhật lô hàng");
+                } finally {
+                  setIsEditSubmitting(false);
+                }
+              }}
+              disabled={isEditSubmitting}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6"
+            >
+              {isEditSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                <>Xác nhận</>
               )}
             </Button>
           </div>

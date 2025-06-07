@@ -20,6 +20,12 @@ export default function ProfilePage() {
     username: "admin",
     email: "admin@example.com",
     fullName: "Admin User",
+    phone: "",
+    agencyName: "",
+    street: "",
+    wardName: "",
+    districtName: "",
+    provinceName: "",
     role: "Administrator",
     avatar: "/placeholder.svg",
   });
@@ -27,14 +33,49 @@ export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleProfileUpdate = (e: React.FormEvent) => {
+  const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    // API call would go here
-    toast("Thông tin cá nhân đã được cập nhật");
+    setIsLoading(true);
+
+    try {
+      const updateData = {
+        username: profile.username,
+        email: profile.email,
+        fullName: profile.fullName,
+        phone: profile.phone,
+        agencyName: profile.agencyName,
+        street: profile.street,
+        wardName: profile.wardName,
+        districtName: profile.districtName,
+        provinceName: profile.provinceName,
+      };
+
+      const response = await fetch("https://minhlong.mlhr.org/api/user", {
+        method: "PUT", // hoặc "PATCH" tùy theo API
+        headers: {
+          "Content-Type": "application/json",
+          // Thêm authorization header nếu cần
+          // "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Cập nhật thông tin thất bại");
+      }
+
+      toast("Thông tin cá nhân đã được cập nhật thành công");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast("Có lỗi xảy ra khi cập nhật thông tin");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
@@ -42,12 +83,43 @@ export default function ProfilePage() {
       return;
     }
 
-    // API call would go here
-    toast("Mật khẩu đã được thay đổi");
+    if (newPassword.length < 6) {
+      toast("Mật khẩu mới phải có ít nhất 6 ký tự");
+      return;
+    }
 
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    setIsLoading(true);
+
+    try {
+      const updateData = {
+        password: newPassword,
+      };
+      const token = localStorage.getItem("token");
+      const response = await fetch("https://minhlong.mlhr.org/api/user", {
+        method: "PUT", // hoặc "PATCH" tùy theo API
+        headers: {
+          "Content-Type": "application/json",
+          // Thêm authorization header nếu cần
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Đổi mật khẩu thất bại");
+      }
+
+      toast("Mật khẩu đã được thay đổi thành công");
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      console.error("Error changing password:", error);
+      toast("Có lỗi xảy ra khi đổi mật khẩu");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -88,7 +160,6 @@ export default function ProfilePage() {
                       onChange={(e) =>
                         setProfile({ ...profile, username: e.target.value })
                       }
-                      disabled
                     />
                   </div>
                   <div className="space-y-2">
@@ -103,23 +174,89 @@ export default function ProfilePage() {
                     />
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Họ tên</Label>
+                    <Input
+                      id="fullName"
+                      value={profile.fullName}
+                      onChange={(e) =>
+                        setProfile({ ...profile, fullName: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Số điện thoại</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={profile.phone}
+                      onChange={(e) =>
+                        setProfile({ ...profile, phone: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Họ tên</Label>
+                  <Label htmlFor="agencyName">Tên cơ quan</Label>
                   <Input
-                    id="fullName"
-                    value={profile.fullName}
+                    id="agencyName"
+                    value={profile.agencyName}
                     onChange={(e) =>
-                      setProfile({ ...profile, fullName: e.target.value })
+                      setProfile({ ...profile, agencyName: e.target.value })
                     }
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="avatar">Ảnh đại diện</Label>
-                  <div className="flex items-center gap-4">
-                    <Input id="avatar" type="file" accept="image/*" />
+                  <Label htmlFor="street">Địa chỉ</Label>
+                  <Input
+                    id="street"
+                    value={profile.street}
+                    onChange={(e) =>
+                      setProfile({ ...profile, street: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="wardName">Phường/Xã</Label>
+                    <Input
+                      id="wardName"
+                      value={profile.wardName}
+                      onChange={(e) =>
+                        setProfile({ ...profile, wardName: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="districtName">Quận/Huyện</Label>
+                    <Input
+                      id="districtName"
+                      value={profile.districtName}
+                      onChange={(e) =>
+                        setProfile({ ...profile, districtName: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="provinceName">Tỉnh/Thành phố</Label>
+                    <Input
+                      id="provinceName"
+                      value={profile.provinceName}
+                      onChange={(e) =>
+                        setProfile({ ...profile, provinceName: e.target.value })
+                      }
+                    />
                   </div>
                 </div>
-                <Button type="submit">Cập nhật</Button>
+
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Đang cập nhật..." : "Cập nhật"}
+                </Button>
               </form>
             </CardContent>
           </Card>
@@ -142,6 +279,7 @@ export default function ProfilePage() {
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
+                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -151,6 +289,8 @@ export default function ProfilePage() {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
                   />
                 </div>
                 <div className="space-y-2">
@@ -160,9 +300,13 @@ export default function ProfilePage() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
                   />
                 </div>
-                <Button type="submit">Đổi mật khẩu</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Đang cập nhật..." : "Đổi mật khẩu"}
+                </Button>
               </form>
             </CardContent>
           </Card>
