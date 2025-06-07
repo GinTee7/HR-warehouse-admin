@@ -16,11 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Loader2, AlertCircle } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogDescription,
-} from "@/components/ui/alert-dialog";
+import { Loader2 } from "lucide-react";
 
 interface Address {
   street: string;
@@ -47,13 +43,24 @@ interface UserProfile {
   username: string;
   email: string;
   phone: string;
+  agencyName: string;
+  street: string;
+  wardName: string;
+  districtName: string;
+  provinceName: string;
   employee: Employee;
 }
 
 interface FormErrors {
+  username?: string;
   email?: string;
   fullName?: string;
   phone?: string;
+  agencyName?: string;
+  street?: string;
+  wardName?: string;
+  districtName?: string;
+  provinceName?: string;
   currentPassword?: string;
   newPassword?: string;
   confirmPassword?: string;
@@ -96,6 +103,32 @@ export default function WarehouseProfile() {
 
         setProfile(response.data);
 
+        // Initialize missing fields from address data or set defaults
+        const profileData = response.data;
+        if (!profileData.agencyName) profileData.agencyName = "";
+
+        // Map address data to flat fields for easier editing
+        if (profileData.employee?.address) {
+          if (!profileData.street)
+            profileData.street = profileData.employee.address.street || "";
+          if (!profileData.wardName)
+            profileData.wardName =
+              profileData.employee.address.ward?.wardName || "";
+          if (!profileData.districtName)
+            profileData.districtName =
+              profileData.employee.address.district?.districtName || "";
+          if (!profileData.provinceName)
+            profileData.provinceName =
+              profileData.employee.address.province?.provinceName || "";
+        } else {
+          if (!profileData.street) profileData.street = "";
+          if (!profileData.wardName) profileData.wardName = "";
+          if (!profileData.districtName) profileData.districtName = "";
+          if (!profileData.provinceName) profileData.provinceName = "";
+        }
+
+        setProfile(profileData);
+
         // Generate avatar from name if available
         if (response.data?.employee?.fullName) {
           const name = response.data.employee.fullName;
@@ -115,6 +148,33 @@ export default function WarehouseProfile() {
 
     fetchUserProfile();
   }, []);
+
+  // Validate username
+  const validateUsername = (username: string): boolean => {
+    if (!username) {
+      setErrors((prev) => ({
+        ...prev,
+        username: "Tên đăng nhập không được để trống",
+      }));
+      return false;
+    }
+    if (username.length < 3) {
+      setErrors((prev) => ({
+        ...prev,
+        username: "Tên đăng nhập phải có ít nhất 3 ký tự",
+      }));
+      return false;
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      setErrors((prev) => ({
+        ...prev,
+        username: "Tên đăng nhập chỉ được chứa chữ, số và dấu _",
+      }));
+      return false;
+    }
+    setErrors((prev) => ({ ...prev, username: undefined }));
+    return true;
+  };
 
   // Validate email
   const validateEmail = (email: string): boolean => {
@@ -161,14 +221,101 @@ export default function WarehouseProfile() {
       }));
       return false;
     }
-    if (name.length < 3) {
+    if (name.length < 2) {
       setErrors((prev) => ({
         ...prev,
-        fullName: "Họ tên phải có ít nhất 3 ký tự",
+        fullName: "Họ tên phải có ít nhất 2 ký tự",
+      }));
+      return false;
+    }
+    if (!/^[a-zA-ZÀ-ỹĂăÂâĐđÊêÔôƠơƯư\s]+$/.test(name)) {
+      setErrors((prev) => ({
+        ...prev,
+        fullName: "Họ tên chỉ được chứa chữ cái và khoảng trắng",
       }));
       return false;
     }
     setErrors((prev) => ({ ...prev, fullName: undefined }));
+    return true;
+  };
+
+  // Validate street
+  const validateStreet = (street: string): boolean => {
+    if (!street) {
+      setErrors((prev) => ({
+        ...prev,
+        street: "Địa chỉ đường không được để trống",
+      }));
+      return false;
+    }
+    if (street.length < 5) {
+      setErrors((prev) => ({
+        ...prev,
+        street: "Địa chỉ đường phải có ít nhất 5 ký tự",
+      }));
+      return false;
+    }
+    setErrors((prev) => ({ ...prev, street: undefined }));
+    return true;
+  };
+
+  // Validate ward name
+  const validateWardName = (wardName: string): boolean => {
+    if (!wardName) {
+      setErrors((prev) => ({
+        ...prev,
+        wardName: "Tên phường/xã không được để trống",
+      }));
+      return false;
+    }
+    if (wardName.length < 2) {
+      setErrors((prev) => ({
+        ...prev,
+        wardName: "Tên phường/xã phải có ít nhất 2 ký tự",
+      }));
+      return false;
+    }
+    setErrors((prev) => ({ ...prev, wardName: undefined }));
+    return true;
+  };
+
+  // Validate district name
+  const validateDistrictName = (districtName: string): boolean => {
+    if (!districtName) {
+      setErrors((prev) => ({
+        ...prev,
+        districtName: "Tên quận/huyện không được để trống",
+      }));
+      return false;
+    }
+    if (districtName.length < 2) {
+      setErrors((prev) => ({
+        ...prev,
+        districtName: "Tên quận/huyện phải có ít nhất 2 ký tự",
+      }));
+      return false;
+    }
+    setErrors((prev) => ({ ...prev, districtName: undefined }));
+    return true;
+  };
+
+  // Validate province name
+  const validateProvinceName = (provinceName: string): boolean => {
+    if (!provinceName) {
+      setErrors((prev) => ({
+        ...prev,
+        provinceName: "Tên tỉnh/thành phố không được để trống",
+      }));
+      return false;
+    }
+    if (provinceName.length < 2) {
+      setErrors((prev) => ({
+        ...prev,
+        provinceName: "Tên tỉnh/thành phố phải có ít nhất 2 ký tự",
+      }));
+      return false;
+    }
+    setErrors((prev) => ({ ...prev, provinceName: undefined }));
     return true;
   };
 
@@ -226,21 +373,10 @@ export default function WarehouseProfile() {
       return false;
     }
 
-    if (newPassword.length < 8) {
+    if (newPassword.length < 6) {
       setErrors((prev) => ({
         ...prev,
-        newPassword: "Mật khẩu mới phải có ít nhất 8 ký tự",
-      }));
-      return false;
-    }
-
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    if (!passwordRegex.test(newPassword)) {
-      setErrors((prev) => ({
-        ...prev,
-        newPassword:
-          "Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt",
+        newPassword: "Mật khẩu mới phải có ít nhất 6 ký tự",
       }));
       return false;
     }
@@ -279,11 +415,25 @@ export default function WarehouseProfile() {
     if (!profile) return;
 
     // Validate all fields
+    const isUsernameValid = validateUsername(profile.username);
     const isEmailValid = validateEmail(profile.email);
     const isPhoneValid = validatePhone(profile.phone);
     const isFullNameValid = validateFullName(profile.employee.fullName);
+    const isStreetValid = validateStreet(profile.street);
+    const isWardNameValid = validateWardName(profile.wardName);
+    const isDistrictNameValid = validateDistrictName(profile.districtName);
+    const isProvinceNameValid = validateProvinceName(profile.provinceName);
 
-    if (!isEmailValid || !isPhoneValid || !isFullNameValid) {
+    if (
+      !isUsernameValid ||
+      !isEmailValid ||
+      !isPhoneValid ||
+      !isFullNameValid ||
+      !isStreetValid ||
+      !isWardNameValid ||
+      !isDistrictNameValid ||
+      !isProvinceNameValid
+    ) {
       toast.error("Vui lòng kiểm tra lại thông tin");
       return;
     }
@@ -297,20 +447,35 @@ export default function WarehouseProfile() {
         return;
       }
 
-      // await axios.put("https://minhlong.mlhr.org/api/update-profile", {
-      //   email: profile.email,
-      //   phone: profile.phone,
-      //   fullName: profile.employee.fullName
-      // }, {
-      //   headers: {
-      //     Authorization: `Bearer ${token}`,
-      //   },
-      // });
+      const updateData = {
+        username: profile.username,
+        email: profile.email,
+        phone: profile.phone,
+        fullName: profile.employee.fullName,
+        agencyName: profile.agencyName || "",
+        street: profile.street || "",
+        wardName: profile.wardName || "",
+        districtName: profile.districtName || "",
+        provinceName: profile.provinceName || "",
+      };
+
+      await axios.put("https://minhlong.mlhr.org/api/user", updateData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       toast.success("Thông tin cá nhân đã được cập nhật");
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error("Không thể cập nhật thông tin cá nhân");
+      if (axios.isAxiosError(error)) {
+        const message =
+          error.response?.data?.error || "Không thể cập nhật thông tin cá nhân";
+        toast.error(message);
+      } else {
+        toast.error("Không thể cập nhật thông tin cá nhân");
+      }
     } finally {
       setUpdating(false);
     }
@@ -332,14 +497,22 @@ export default function WarehouseProfile() {
         return;
       }
 
-      // await axios.post("https://minhlong.mlhr.org/api/change-password", {
-      //   currentPassword,
-      //   newPassword
-      // }, {
-      //   headers: {
-      //     Authorization: `Bearer ${token}`,
-      //   },
-      // });
+      const passwordData = {
+        oldPassword: currentPassword,
+        newPassword: newPassword,
+        confirmPassword: confirmPassword,
+      };
+
+      await axios.post(
+        "https://minhlong.mlhr.org/api/change-password",
+        passwordData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       toast.success("Mật khẩu đã được thay đổi");
       setCurrentPassword("");
@@ -349,17 +522,16 @@ export default function WarehouseProfile() {
       setPasswordScore(0);
     } catch (error) {
       console.error("Error changing password:", error);
-      toast.error("Không thể thay đổi mật khẩu");
+      if (axios.isAxiosError(error)) {
+        const message =
+          error.response?.data?.error || "Không thể thay đổi mật khẩu";
+        toast.error(message);
+      } else {
+        toast.error("Không thể thay đổi mật khẩu");
+      }
     } finally {
       setUpdating(false);
     }
-  };
-
-  const getFullAddress = () => {
-    if (!profile?.employee?.address) return "Chưa cập nhật";
-
-    const { street, ward, district, province } = profile.employee.address;
-    return `${street}, ${ward.wardName}, ${district.districtName}, ${province.provinceName}`;
   };
 
   const getPositionDisplay = (position: string) => {
@@ -439,8 +611,23 @@ export default function WarehouseProfile() {
               <form onSubmit={handleProfileUpdate} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="username">Tên đăng nhập</Label>
-                    <Input id="username" value={profile.username} disabled />
+                    <Label htmlFor="username" className="flex justify-between">
+                      Tên đăng nhập
+                      {errors.username && (
+                        <span className="text-red-500 text-xs">
+                          {errors.username}
+                        </span>
+                      )}
+                    </Label>
+                    <Input
+                      id="username"
+                      value={profile.username}
+                      onChange={(e) => {
+                        setProfile({ ...profile, username: e.target.value });
+                        validateUsername(e.target.value);
+                      }}
+                      className={errors.username ? "border-red-500" : ""}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email" className="flex justify-between">
@@ -463,6 +650,7 @@ export default function WarehouseProfile() {
                     />
                   </div>
                 </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="flex justify-between">
@@ -509,6 +697,99 @@ export default function WarehouseProfile() {
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="street" className="flex justify-between">
+                    Địa chỉ
+                    {errors.street && (
+                      <span className="text-red-500 text-xs">
+                        {errors.street}
+                      </span>
+                    )}
+                  </Label>
+                  <Input
+                    id="street"
+                    value={profile.street || ""}
+                    onChange={(e) => {
+                      setProfile({ ...profile, street: e.target.value });
+                      validateStreet(e.target.value);
+                    }}
+                    className={errors.street ? "border-red-500" : ""}
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="wardName" className="flex justify-between">
+                      Phường/Xã
+                      {errors.wardName && (
+                        <span className="text-red-500 text-xs">
+                          {errors.wardName}
+                        </span>
+                      )}
+                    </Label>
+                    <Input
+                      id="wardName"
+                      value={profile.wardName || ""}
+                      onChange={(e) => {
+                        setProfile({ ...profile, wardName: e.target.value });
+                        validateWardName(e.target.value);
+                      }}
+                      className={errors.wardName ? "border-red-500" : ""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="districtName"
+                      className="flex justify-between"
+                    >
+                      Quận/Huyện
+                      {errors.districtName && (
+                        <span className="text-red-500 text-xs">
+                          {errors.districtName}
+                        </span>
+                      )}
+                    </Label>
+                    <Input
+                      id="districtName"
+                      value={profile.districtName || ""}
+                      onChange={(e) => {
+                        setProfile({
+                          ...profile,
+                          districtName: e.target.value,
+                        });
+                        validateDistrictName(e.target.value);
+                      }}
+                      className={errors.districtName ? "border-red-500" : ""}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="provinceName"
+                      className="flex justify-between"
+                    >
+                      Tỉnh/Thành phố
+                      {errors.provinceName && (
+                        <span className="text-red-500 text-xs">
+                          {errors.provinceName}
+                        </span>
+                      )}
+                    </Label>
+                    <Input
+                      id="provinceName"
+                      value={profile.provinceName || ""}
+                      onChange={(e) => {
+                        setProfile({
+                          ...profile,
+                          provinceName: e.target.value,
+                        });
+                        validateProvinceName(e.target.value);
+                      }}
+                      className={errors.provinceName ? "border-red-500" : ""}
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="department">Phòng ban</Label>
                   <Input
@@ -524,10 +805,6 @@ export default function WarehouseProfile() {
                     value={getPositionDisplay(profile.employee.position)}
                     disabled
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="address">Địa chỉ</Label>
-                  <Input id="address" value={getFullAddress()} disabled />
                 </div>
 
                 <Button type="submit" disabled={updating}>
@@ -654,14 +931,6 @@ export default function WarehouseProfile() {
                     required
                   />
                 </div>
-
-                <AlertDialog>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDialogDescription>
-                    Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ
-                    thường, số và ký tự đặc biệt.
-                  </AlertDialogDescription>
-                </AlertDialog>
 
                 <Button type="submit" disabled={updating}>
                   {updating ? (

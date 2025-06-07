@@ -75,6 +75,14 @@ export const getStatusInfo = (
       label: "Đã điều phối",
       icon: "alert-circle",
     };
+  } else if (statusLower === "canceled") {
+    return {
+      color: "text-red-800",
+      bgColor: "bg-red-100",
+      hoverColor: "hover:bg-red-200",
+      label: "Đã hủy",
+      icon: "alert-circle",
+    };
   } else {
     return {
       color: "text-gray-800",
@@ -233,10 +241,6 @@ export function OutgoingTransferDetailsDialog({
         </div>
 
         <DialogFooter className="flex flex-col sm:flex-row justify-between sm:justify-end gap-2">
-          <Button variant="destructive" onClick={() => onOpenChange(false)}>
-            Đóng
-          </Button>
-
           {transfer.status.toLowerCase() === "approved" && (
             <Button
               variant="outline"
@@ -257,6 +261,9 @@ export function OutgoingTransferDetailsDialog({
               )}
             </Button>
           )}
+          <Button variant="destructive" onClick={() => onOpenChange(false)}>
+            Đóng
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
