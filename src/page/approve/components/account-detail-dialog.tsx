@@ -83,15 +83,7 @@ export function AccountDetailDialog({
                   Thông tin đăng ký của {account.username}
                 </DialogDescription>
               </div>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
+              <DialogTrigger asChild></DialogTrigger>
             </div>
           </DialogHeader>
 
