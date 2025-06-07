@@ -99,13 +99,14 @@ export function ReceiptSummary({ onDataChange }: ReceiptSummaryProps) {
 
     useEffect(() => {
         if (receiptSummary && onDataChange) {
-            onDataChange({
+            const data = {
                 totalPrice: receiptSummary.totalPrice,
                 totalReceipts: receiptSummary.totalReceipts,
-                totalQuantity: receiptSummary.totalQuantity,
-            });
+                totalQuantity: receiptSummary.totalQuantity
+            };
+            onDataChange(data);
         }
-    }, [receiptSummary, onDataChange]);
+    }, [receiptSummary]);
 
     const handleDateChange = () => {
         // Validate dates

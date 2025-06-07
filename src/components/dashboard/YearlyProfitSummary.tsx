@@ -77,13 +77,14 @@ export function YearlyProfitSummary({ onDataChange }: YearlyProfitSummaryProps) 
 
     useEffect(() => {
         if (profitData && onDataChange) {
-            onDataChange({
+            const data = {
                 profitAmount: profitData.profitAmount,
                 profitPercentage: profitData.profitPercentage,
                 year: profitData.year
-            });
+            };
+            onDataChange(data);
         }
-    }, [profitData, onDataChange]);
+    }, [profitData]);
 
     const handleYearChange = (value: string) => {
         setSelectedYear(value);

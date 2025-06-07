@@ -73,8 +73,9 @@ export default function AdminDashboard() {
   };
 
   const getValueColor = (value: number | undefined | null) => {
-    if (value === undefined || value === null) return "";
-    return value >= 0 ? "text-green-500" : "text-red-500";
+    if (value === undefined || value === null) return "text-black";
+    if (value === 0) return "text-black";
+    return value > 0 ? "text-green-500" : "text-red-500";
   };
 
   return (
@@ -94,7 +95,7 @@ export default function AdminDashboard() {
             <PackagePlus className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className={`text-2xl font-bold ${getValueColor(receiptData?.totalPrice)}`}>
               {formatCurrency(receiptData?.totalPrice)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -103,6 +104,7 @@ export default function AdminDashboard() {
             </p>
           </CardContent>
         </Card>
+
         <Card className="bg-cyan-50 border-cyan-100">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -111,7 +113,7 @@ export default function AdminDashboard() {
             <PackageMinus className="h-4 w-4 text-cyan-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className={`text-2xl font-bold ${getValueColor(exportData?.totalAmount)}`}>
               {formatCurrency(exportData?.totalAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -120,6 +122,7 @@ export default function AdminDashboard() {
             </p>
           </CardContent>
         </Card>
+
         <Card className={`${(profitData?.totalProfit ?? 0) >= 0 ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -136,11 +139,12 @@ export default function AdminDashboard() {
               {formatCurrency(profitData?.totalProfit)}
             </div>
             <p className="text-xs text-muted-foreground">
-              <div>• Doanh thu: <span className={getValueColor(profitData?.totalExportRevenue)}>{formatCurrency(profitData?.totalExportRevenue)}</span></div>
-              <div>• Chi phí:  <span className={getValueColor(-(profitData?.totalImportCost || 0))}>{formatCurrency(profitData?.totalImportCost)}</span></div>
+              <span> Doanh thu: <span className={getValueColor(profitData?.totalExportRevenue)}>{formatCurrency(profitData?.totalExportRevenue)}</span></span>
+              <span> Chi phí:  <span className={getValueColor(-(profitData?.totalImportCost || 0))}>{formatCurrency(profitData?.totalImportCost)}</span></span>
             </p>
           </CardContent>
         </Card>
+
         <Card className={`${(yearlyProfitData?.profitAmount ?? 0) >= 0 ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -152,24 +156,18 @@ export default function AdminDashboard() {
             <div className={`text-2xl font-bold ${getValueColor(yearlyProfitData?.profitAmount)}`}>
               {formatPercentage(yearlyProfitData?.profitPercentage)}
             </div>
-
           </CardContent>
         </Card>
-
       </div>
 
-      <section className="space-y-4">
+      <div className="space-y-4">
         <ExportSummary onDataChange={handleExportDataChange} />
-      </section>
-      <section className="space-y-4">
         <ReceiptSummary onDataChange={handleReceiptDataChange} />
-      </section>
-      <section className="space-y-4">
         <YearlyProfitSummary onDataChange={handleYearlyProfitDataChange} />
-      </section>
-      <section className="space-y-4">
         <ProfitSummary onDataChange={handleProfitDataChange} />
-      </section>
+
+
+      </div>
 
     </div>
   );

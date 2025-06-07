@@ -90,14 +90,15 @@ export function ProfitSummary({ onDataChange }: ProfitSummaryProps) {
 
     useEffect(() => {
         if (profitData.length > 0 && onDataChange) {
-            onDataChange({
+            const data = {
                 totalProfit: profitData.reduce((sum, item) => sum + item.profitAmount, 0),
                 totalExportRevenue: profitData.reduce((sum, item) => sum + item.totalExportRevenue, 0),
                 totalImportCost: profitData.reduce((sum, item) => sum + item.totalImportCost, 0),
                 year: profitData[0].year
-            });
+            };
+            onDataChange(data);
         }
-    }, [profitData, onDataChange]);
+    }, [profitData]);
 
     const handleYearChange = (value: string) => {
         setSelectedYear(value);

@@ -100,14 +100,15 @@ export function ExportSummary({ onDataChange }: ExportSummaryProps) {
     }, [startDate, endDate]);
 
     useEffect(() => {
-        if (exportSummary) {
-            onDataChange?.({
+        if (exportSummary && onDataChange) {
+            const data = {
                 totalAmount: exportSummary.totalAmount,
                 totalExports: exportSummary.totalExports,
                 totalQuantity: exportSummary.totalQuantity
-            });
+            };
+            onDataChange(data);
         }
-    }, [exportSummary, onDataChange]);
+    }, [exportSummary]);
 
     const handleDateChange = () => {
         // Validate dates

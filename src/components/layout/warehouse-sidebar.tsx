@@ -33,7 +33,7 @@ const menuItems = [
     icon: <PackagePlus className="h-5 w-5" />,
   },
   {
-    title: "Quản lí nhập hàng",
+    title: "Quản lí hàng",
     path: "/warehouse/inventory",
     icon: <Import className="h-5 w-5" />,
   },
