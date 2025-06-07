@@ -470,14 +470,16 @@ export function ExportDetail({
           )}
           {canProcess && (
             <>
-              <Button
-                variant="default"
-                className="bg-green-600 hover:bg-green-700 mr-2"
-                onClick={openApprovalDialog}
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Duyệt đơn xuất kho
-              </Button>
+              {exportData.exportType === "AvailableExport" && (
+                <Button
+                  variant="default"
+                  className="bg-green-600 hover:bg-green-700 mr-2"
+                  onClick={openApprovalDialog}
+                >
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Duyệt đơn xuất kho
+                </Button>
+              )}
 
               <Button variant="destructive" onClick={openRejectDialog}>
                 <XCircle className="h-4 w-4 mr-2" />

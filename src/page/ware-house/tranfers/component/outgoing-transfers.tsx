@@ -17,11 +17,28 @@ import {
   Calendar,
   Package,
   ClipboardList,
+  Filter,
 } from "lucide-react";
 import type { WarehouseTransfer } from "@/types/warehouse";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/utils/warehouse-utils"; // Only importing formatDate now
 import { OutgoingTransferDetailsDialog } from "./outgoing-transfer-details-dialog";
+
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface OutgoingTransfersProps {
   transfers: WarehouseTransfer[];
@@ -42,6 +59,10 @@ export function OutgoingTransfers({
     setSelectedTransfer(transfer);
     setIsDetailsOpen(true);
   };
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Inline function to get status badge styling and label
   const getStatusBadgeInline = (status: string) => {
@@ -66,7 +87,7 @@ export function OutgoingTransfers({
       bgColor = "bg-blue-100";
       hoverColor = "hover:bg-blue-200";
       label = "Đã phê duyệt";
-    } else if (statusLower === "cancelled") {
+    } else if (statusLower === "canceled") {
       color = "text-red-800";
       bgColor = "bg-red-100";
       hoverColor = "hover:bg-red-200";
@@ -112,10 +133,55 @@ export function OutgoingTransfers({
     (a, b) =>
       new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime()
   );
-
+  const filteredTransfers =
+    statusFilter === "all"
+      ? sortedTransfers
+      : sortedTransfers.filter(
+          (transfer) => transfer.status?.toLowerCase() === statusFilter
+        );
+  const totalPages = Math.ceil(filteredTransfers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedTransfers = filteredTransfers.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
   return (
     <div className="space-y-4">
       <div className="rounded-md border overflow-x-auto">
+        <div className="flex justify-end items-center mb-2 gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <Filter className="mr-2 h-4 w-4" />
+              <SelectValue placeholder="Lọc trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="pending">Chờ xử lí</SelectItem>
+              <SelectItem value="approved">Đã phê duyệt</SelectItem>
+              <SelectItem value="completed">Hoàn thành</SelectItem>
+              <SelectItem value="cancelled">Đã hủy</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[90px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <Table>
           <TableHeader>
             <TableRow>
@@ -129,7 +195,7 @@ export function OutgoingTransfers({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedTransfers.map((transfer) => (
+            {paginatedTransfers.map((transfer) => (
               <TableRow key={transfer.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center">
@@ -181,6 +247,89 @@ export function OutgoingTransfers({
           onImported={onRefresh}
         />
       )}
+      <div className="flex items-center justify-between px-4 py-2">
+        <div className="text-sm text-muted-foreground">
+          Hiển thị {sortedTransfers.length === 0 ? 0 : indexOfFirstItem + 1} -{" "}
+          {Math.min(indexOfLastItem, sortedTransfers.length)} /{" "}
+          {sortedTransfers.length} yêu cầu
+        </div>
+        <div className="flex items-center gap-2">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  className={
+                    currentPage === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+              {currentPage > 3 && (
+                <>
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(1)}
+                      className="cursor-pointer"
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <span>...</span>
+                  </PaginationItem>
+                </>
+              )}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .slice(
+                  Math.max(0, currentPage - 3),
+                  Math.min(totalPages, currentPage + 2)
+                )
+                .map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+              {currentPage < totalPages - 2 && (
+                <>
+                  <PaginationItem>
+                    <span>...</span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="cursor-pointer"
+                    >
+                      {totalPages}
+                    </PaginationLink>
+                  </PaginationItem>
+                </>
+              )}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  className={
+                    currentPage === totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      </div>
     </div>
   );
 }

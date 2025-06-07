@@ -37,7 +37,6 @@ import {
   Filter,
   ClipboardList,
   Building,
-  RefreshCcw,
   Printer,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -393,10 +392,6 @@ export function ExportReceiptsList() {
               <SelectItem value="50">50</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={fetchExportReceipts}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Làm mới
-          </Button>
         </div>
       </div>
 

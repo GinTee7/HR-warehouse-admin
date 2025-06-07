@@ -41,7 +41,6 @@ import {
   Plus,
   FileText,
   Printer,
-  Download,
   Filter,
   RefreshCw,
 } from "lucide-react";
@@ -50,6 +49,14 @@ import axios from "axios";
 import { ImportForm } from "./component/import-form";
 import { ImportDetail } from "./component/import-detail";
 import { useMediaQuery } from "@/components/hooks/use-media-query";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 // Add global print styles
 const printStyles = `
@@ -230,7 +237,8 @@ export default function ImportPage() {
     setIsRefreshing(true);
     fetchImports();
   };
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   // Filter imports based on search term and status
   const filteredImports = imports.filter((imp) => {
     const matchesSearch =
@@ -247,7 +255,13 @@ export default function ImportPage() {
 
     return matchesSearch && matchesStatus && matchesTab;
   });
-
+  const totalPages = Math.ceil(filteredImports.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedImports = filteredImports.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
   const handleViewDetail = (importItem: ImportReceipt) => {
     setSelectedImport(importItem);
     setIsDetailOpen(true);
@@ -350,6 +364,24 @@ export default function ImportPage() {
                       <SelectItem value="false">Đang kiểm tra</SelectItem>
                     </SelectContent>
                   </Select>
+                  {/* Số dòng / trang */}
+                  <Select
+                    value={itemsPerPage.toString()}
+                    onValueChange={(value) => {
+                      setItemsPerPage(Number(value));
+                      setCurrentPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="w-[90px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="20">20</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardHeader>
@@ -401,14 +433,14 @@ export default function ImportPage() {
                             </div>
                           </TableCell>
                         </TableRow>
-                      ) : filteredImports.length === 0 ? (
+                      ) : paginatedImports.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center h-24">
                             Không tìm thấy phiếu nhập nào
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredImports.map((imp) => (
+                        paginatedImports.map((imp) => (
                           <TableRow key={imp.warehouseReceiptId}>
                             <TableCell className="font-medium">
                               {imp.documentNumber}
@@ -452,19 +484,91 @@ export default function ImportPage() {
                 </div>
               )}
             </CardContent>
-            <CardFooter className="flex justify-between border-t px-6 py-4">
+            <CardFooter className="flex justify-between items-center border-t px-6 py-4">
               <div className="text-sm text-muted-foreground">
-                Hiển thị {filteredImports.length} / {imports.length} phiếu nhập
+                Hiển thị{" "}
+                {paginatedImports.length === 0 ? 0 : indexOfFirstItem + 1} -{" "}
+                {Math.min(indexOfLastItem, filteredImports.length)} /{" "}
+                {filteredImports.length} phiếu nhập
               </div>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm">
-                  <Printer className="mr-2 h-4 w-4" />
-                  In danh sách
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-4 w-4" />
-                  Xuất Excel
-                </Button>
+              <div className="flex items-center gap-2">
+                {/* Pagination */}
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(prev - 1, 1))
+                        }
+                        className={
+                          currentPage === 1
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                    {currentPage > 3 && (
+                      <>
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(1)}
+                            className="cursor-pointer"
+                          >
+                            1
+                          </PaginationLink>
+                        </PaginationItem>
+                        <PaginationItem>
+                          <span>...</span>
+                        </PaginationItem>
+                      </>
+                    )}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .slice(
+                        Math.max(0, currentPage - 3),
+                        Math.min(totalPages, currentPage + 2)
+                      )
+                      .map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                    {currentPage < totalPages - 2 && (
+                      <>
+                        <PaginationItem>
+                          <span>...</span>
+                        </PaginationItem>
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(totalPages)}
+                            className="cursor-pointer"
+                          >
+                            {totalPages}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </>
+                    )}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(prev + 1, totalPages)
+                          )
+                        }
+                        className={
+                          currentPage === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : "cursor-pointer"
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
               </div>
             </CardFooter>
           </Card>
@@ -576,6 +680,111 @@ export default function ImportPage() {
                       )}
                     </TableBody>
                   </Table>
+                  <CardFooter className="flex justify-between items-center border-t px-6 py-4">
+                    <div className="text-sm text-muted-foreground">
+                      Hiển thị{" "}
+                      {filteredImports.length === 0 ? 0 : indexOfFirstItem + 1}{" "}
+                      - {Math.min(indexOfLastItem, filteredImports.length)} /{" "}
+                      {filteredImports.length} phiếu nhập
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {/* Chọn số dòng/trang */}
+                      <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => {
+                          setItemsPerPage(Number(value));
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="w-[90px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="5">5</SelectItem>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="20">20</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {/* Pagination */}
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              onClick={() =>
+                                setCurrentPage((prev) => Math.max(prev - 1, 1))
+                              }
+                              className={
+                                currentPage === 1
+                                  ? "pointer-events-none opacity-50"
+                                  : "cursor-pointer"
+                              }
+                            />
+                          </PaginationItem>
+                          {currentPage > 3 && (
+                            <>
+                              <PaginationItem>
+                                <PaginationLink
+                                  onClick={() => setCurrentPage(1)}
+                                  className="cursor-pointer"
+                                >
+                                  1
+                                </PaginationLink>
+                              </PaginationItem>
+                              <PaginationItem>
+                                <span>...</span>
+                              </PaginationItem>
+                            </>
+                          )}
+                          {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .slice(
+                              Math.max(0, currentPage - 3),
+                              Math.min(totalPages, currentPage + 2)
+                            )
+                            .map((page) => (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  onClick={() => setCurrentPage(page)}
+                                  isActive={currentPage === page}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            ))}
+                          {currentPage < totalPages - 2 && (
+                            <>
+                              <PaginationItem>
+                                <span>...</span>
+                              </PaginationItem>
+                              <PaginationItem>
+                                <PaginationLink
+                                  onClick={() => setCurrentPage(totalPages)}
+                                  className="cursor-pointer"
+                                >
+                                  {totalPages}
+                                </PaginationLink>
+                              </PaginationItem>
+                            </>
+                          )}
+                          <PaginationItem>
+                            <PaginationNext
+                              onClick={() =>
+                                setCurrentPage((prev) =>
+                                  Math.min(prev + 1, totalPages)
+                                )
+                              }
+                              className={
+                                currentPage === totalPages
+                                  ? "pointer-events-none opacity-50"
+                                  : "cursor-pointer"
+                              }
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  </CardFooter>
                 </div>
               )}
             </CardContent>

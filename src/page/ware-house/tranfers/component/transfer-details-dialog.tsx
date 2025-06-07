@@ -76,6 +76,14 @@ export const getStatusInfo = (
       label: "Đã điều phối",
       icon: "alert-circle",
     };
+  } else if (statusLower === "canceled") {
+    return {
+      color: "text-blue-800",
+      bgColor: "bg-blue-100",
+      hoverColor: "hover:bg-blue-200",
+      label: "Đã hủy",
+      icon: "alert-circle",
+    };
   } else {
     return {
       color: "text-gray-800",

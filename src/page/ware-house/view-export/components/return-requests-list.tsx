@@ -35,7 +35,6 @@ import {
   Calendar,
   Filter,
   ClipboardList,
-  RefreshCcw,
   CheckCircle,
   CircleX,
 } from "lucide-react";
@@ -70,7 +69,6 @@ interface ReturnRequestsListProps {
 export function ReturnRequestsList({
   returnRequests,
   isLoading,
-  onRefresh,
   onProcessed,
 }: ReturnRequestsListProps) {
   const [filteredRequests, setFilteredRequests] = useState<
@@ -380,10 +378,6 @@ export function ReturnRequestsList({
               <SelectItem value="50">50</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={onRefresh}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Làm mới
-          </Button>
         </div>
       </div>
 

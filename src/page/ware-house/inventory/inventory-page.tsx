@@ -488,11 +488,11 @@ export default function InventoryPage() {
     return now.toISOString().slice(0, 10);
   }
   return (
-    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
+    <div className="space-y-6" style={{ maxHeight: "90vh", overflowY: "auto" }}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="inventory">Tồn kho</TabsTrigger>
-          <TabsTrigger value="damaged">Xuất hủy</TabsTrigger>
+          <TabsTrigger value="inventory">Hàng nhập</TabsTrigger>
+          <TabsTrigger value="damaged">Hàng hủy</TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory">

@@ -1,8 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Package, Search, AlertCircle, Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Package, Search, AlertCircle, Loader2, Filter } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -21,6 +27,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
 interface Product {
   productId: number;
   productName: string;
@@ -34,7 +49,15 @@ export default function BunkerPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
   // Fetch products data
   useEffect(() => {
     const fetchProducts = async () => {
@@ -86,6 +109,9 @@ export default function BunkerPage() {
     setFilteredProducts(filtered);
   }, [searchTerm, statusFilter, products]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, itemsPerPage]);
   // Get status badge
   const getStatusBadge = (status: string, quantity: number) => {
     if (status !== "ACTIVE") {
@@ -128,7 +154,7 @@ export default function BunkerPage() {
   ).length;
 
   return (
-    <div className="space-y-6" style={{ maxHeight: "80vh", overflowY: "auto" }}>
+    <div className="space-y-6" style={{ maxHeight: "90vh", overflowY: "auto" }}>
       <div></div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -170,9 +196,6 @@ export default function BunkerPage() {
           <div className="flex justify-between items-center flex-col sm:flex-row gap-3">
             <div>
               <CardTitle>Danh sách sản phẩm trong kho</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Hiển thị {filteredProducts.length} / {products.length} sản phẩm
-              </p>
             </div>
             <div className="flex items-center space-x-2">
               <div className="relative w-[250px]">
@@ -187,12 +210,30 @@ export default function BunkerPage() {
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-[180px]">
+                  <Filter className="mr-2 h-4 w-4" />
                   <SelectValue placeholder="Trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   <SelectItem value="in-stock">Còn hàng</SelectItem>
                   <SelectItem value="out-of-stock">Hết hàng</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={itemsPerPage.toString()}
+                onValueChange={(value) => {
+                  setItemsPerPage(Number(value));
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -224,7 +265,7 @@ export default function BunkerPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredProducts.map((product) => (
+                paginatedProducts.map((product) => (
                   <TableRow key={product.productId}>
                     <TableCell>{product.productName}</TableCell>
                     <TableCell className="text-right">
@@ -238,6 +279,92 @@ export default function BunkerPage() {
               )}
             </TableBody>
           </Table>
+          <CardFooter className="flex justify-between items-center border-t px-6 py-4">
+            <div className="text-sm text-muted-foreground">
+              Hiển thị{" "}
+              {filteredProducts.length === 0 ? 0 : indexOfFirstItem + 1} -{" "}
+              {Math.min(indexOfLastItem, filteredProducts.length)} /{" "}
+              {filteredProducts.length} sản phẩm
+            </div>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    className={
+                      currentPage === 1
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+
+                {currentPage > 3 && (
+                  <>
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(1)}
+                        className="cursor-pointer"
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <span>...</span>
+                    </PaginationItem>
+                  </>
+                )}
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .slice(
+                    Math.max(0, currentPage - 3),
+                    Math.min(totalPages, currentPage + 2)
+                  )
+                  .map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+
+                {currentPage < totalPages - 2 && (
+                  <>
+                    <PaginationItem>
+                      <span>...</span>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setCurrentPage(totalPages)}
+                        className="cursor-pointer"
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  </>
+                )}
+
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    className={
+                      currentPage === totalPages
+                        ? "pointer-events-none opacity-50"
+                        : "cursor-pointer"
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </CardFooter>
         </CardContent>
       </Card>
     </div>

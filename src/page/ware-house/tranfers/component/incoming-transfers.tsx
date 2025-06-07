@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ import {
   Package,
   ClipboardList,
   CheckCircle,
+  Filter,
 } from "lucide-react";
 import type { WarehouseTransfer } from "@/types/warehouse";
 import { toast } from "sonner";
@@ -35,6 +36,22 @@ import {
 import { approveTransfer } from "@/lib/transfer-api";
 import { formatDate } from "@/utils/warehouse-utils"; // Only importing formatDate
 import { IncomingTransferDetailsDialog } from "./incoming-transfer-details-dialog";
+
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface IncomingTransfersProps {
   transfers: WarehouseTransfer[];
@@ -57,6 +74,12 @@ export function IncomingTransfers({
     setSelectedTransfer(transfer);
     setIsDetailsOpen(true);
   };
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, itemsPerPage]);
 
   const handleApproveConfirm = async () => {
     if (!selectedTransfer) return;
@@ -98,7 +121,7 @@ export function IncomingTransfers({
       bgColor = "bg-blue-100";
       hoverColor = "hover:bg-blue-200";
       label = "Đã chọn kho";
-    } else if (statusLower === "cancelled") {
+    } else if (statusLower === "canceled") {
       color = "text-red-800";
       bgColor = "bg-red-100";
       hoverColor = "hover:bg-red-200";
@@ -109,7 +132,6 @@ export function IncomingTransfers({
       hoverColor = "hover:bg-teal-200";
       label = "Đã phê duyệt";
     }
-
     return (
       <Badge className={`${color} ${bgColor} ${hoverColor} transition-colors`}>
         {label}
@@ -149,9 +171,60 @@ export function IncomingTransfers({
     (a, b) =>
       new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime()
   );
+  const filteredTransfers =
+    statusFilter === "all"
+      ? sortedTransfers
+      : sortedTransfers.filter(
+          (transfer) => transfer.status?.toLowerCase() === statusFilter
+        );
+
+  const totalPages = Math.ceil(filteredTransfers.length / itemsPerPage);
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const paginatedTransfers = filteredTransfers.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end items-center mb-2 gap-2">
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => setStatusFilter(value)}
+        >
+          <SelectTrigger className="w-[200px]">
+            <Filter className="mr-2 h-4 w-4" />
+            <SelectValue placeholder="Trạng thái" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
+            <SelectItem value="pending">Chờ xử lí</SelectItem>
+            <SelectItem value="planned">Đã chọn kho</SelectItem>
+            <SelectItem value="approved">Đã phê duyệt</SelectItem>
+            <SelectItem value="completed">Hoàn thành</SelectItem>
+            <SelectItem value="canceled">Đã hủy</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select
+          value={itemsPerPage.toString()}
+          onValueChange={(value) => {
+            setItemsPerPage(Number(value));
+            setCurrentPage(1);
+          }}
+        >
+          <SelectTrigger className="w-[120px]">
+            <SelectValue placeholder="Dòng/trang" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="5">5</SelectItem>
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem value="20">20</SelectItem>
+            <SelectItem value="50">50</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
@@ -166,7 +239,7 @@ export function IncomingTransfers({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sortedTransfers.map((transfer) => (
+            {paginatedTransfers.map((transfer) => (
               <TableRow key={transfer.id}>
                 <TableCell className="font-medium">
                   <div className="flex items-center">
@@ -208,6 +281,91 @@ export function IncomingTransfers({
             ))}
           </TableBody>
         </Table>
+        <div className="flex justify-between items-center px-2 py-3">
+          <div className="text-sm text-muted-foreground">
+            Hiển thị {filteredTransfers.length === 0 ? 0 : indexOfFirstItem + 1}
+            - {Math.min(indexOfLastItem, filteredTransfers.length)} /{" "}
+            {filteredTransfers.length} yêu cầu
+          </div>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  className={
+                    currentPage === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+              {/* ... (các nút số trang & ... như dưới đây) */}
+              {currentPage > 3 && (
+                <>
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(1)}
+                      className="cursor-pointer"
+                    >
+                      1
+                    </PaginationLink>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <span>...</span>
+                  </PaginationItem>
+                </>
+              )}
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .slice(
+                  Math.max(0, currentPage - 3),
+                  Math.min(totalPages, currentPage + 2)
+                )
+                .map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+
+              {currentPage < totalPages - 2 && (
+                <>
+                  <PaginationItem>
+                    <span>...</span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="cursor-pointer"
+                    >
+                      {totalPages}
+                    </PaginationLink>
+                  </PaginationItem>
+                </>
+              )}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  className={
+                    currentPage === totalPages || totalPages === 0
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
 
       {selectedTransfer && (
