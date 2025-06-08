@@ -413,8 +413,8 @@ export default function InventoryPage() {
     if (!selectedBatch) return;
 
     const marginValue = Number.parseFloat(profitMargin);
-    if (isNaN(marginValue) || marginValue <= 0 || marginValue > 100) {
-      toast.error("Tỷ lệ lợi nhuận phải là số dương và không vượt quá 100%");
+    if (isNaN(marginValue) || marginValue <= 0) {
+      toast.error("Tỷ lệ lợi nhuận phải là số dương");
       return;
     }
 
@@ -481,12 +481,7 @@ export default function InventoryPage() {
       setIsLoading(false);
     }
   };
-  function getTodayVN() {
-    const now = new Date();
-    // Chuyển sang VN (GMT+7)
-    now.setHours(now.getHours() + 7 - now.getTimezoneOffset() / 60);
-    return now.toISOString().slice(0, 10);
-  }
+
   return (
     <div className="space-y-6" style={{ maxHeight: "90vh", overflowY: "auto" }}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -1263,12 +1258,174 @@ export default function InventoryPage() {
               <Label className="w-[120px] text-right text-gray-500 pr-4">
                 Ngày sản xuất
               </Label>
-              <Input
-                type="date"
-                value={editDateOfManufacture}
-                max={getTodayVN()}
-                onChange={(e) => setEditDateOfManufacture(e.target.value)}
-              />
+              <div className="flex-1 grid grid-cols-3 gap-2">
+                {(() => {
+                  // --- Lấy thông tin ngày hôm nay ---
+                  const today = new Date();
+                  const todayYear = today.getFullYear();
+                  const todayMonth = today.getMonth() + 1; // getMonth() trả về 0-11, nên +1
+                  const todayDay = today.getDate();
+
+                  // --- Lấy thông tin ngày đang được chọn từ state ---
+                  const [selectedYear, selectedMonth, selectedDay] =
+                    editDateOfManufacture
+                      ? editDateOfManufacture.split("-").map(Number)
+                      : [0, 0, 0];
+
+                  // --- Hàm tiện ích ---
+                  const getDaysInMonth = (year: any, month: any) =>
+                    year && month ? new Date(year, month, 0).getDate() : 31;
+
+                  // --- Tạo danh sách cho các ô chọn ---
+                  const years = Array.from({ length: 20 }, (_, i) =>
+                    String(todayYear - i)
+                  );
+                  const months = Array.from({ length: 12 }, (_, i) =>
+                    String(i + 1).padStart(2, "0")
+                  );
+                  const numDaysInSelectedMonth = getDaysInMonth(
+                    selectedYear,
+                    selectedMonth
+                  );
+                  const days = Array.from(
+                    { length: numDaysInSelectedMonth },
+                    (_, i) => String(i + 1).padStart(2, "0")
+                  );
+
+                  // --- Logic xử lý khi thay đổi lựa chọn ---
+                  const handleYearChange = (newYearVal: any) => {
+                    const newYear = Number(newYearVal);
+                    let newMonth = selectedMonth;
+                    let newDay = selectedDay;
+
+                    // Nếu chọn năm hiện tại và tháng đang chọn lớn hơn tháng hiện tại -> reset về tháng + ngày hôm nay
+                    if (newYear === todayYear && newMonth > todayMonth) {
+                      newMonth = todayMonth;
+                      newDay = todayDay;
+                    }
+
+                    // Kiểm tra và cập nhật ngày nếu tháng mới không có ngày đó (VD: 31/01 -> 28/02)
+                    const daysInNewMonth = getDaysInMonth(newYear, newMonth);
+                    if (newDay > daysInNewMonth) {
+                      newDay = daysInNewMonth;
+                    }
+
+                    setEditDateOfManufacture(
+                      `${String(newYear)}-${String(newMonth).padStart(
+                        2,
+                        "0"
+                      )}-${String(newDay).padStart(2, "0")}`
+                    );
+                  };
+
+                  const handleMonthChange = (newMonthVal: any) => {
+                    const newMonth = Number(newMonthVal);
+                    let newDay = selectedDay;
+
+                    // Nếu chọn năm-tháng hiện tại và ngày đang chọn lớn hơn ngày hôm nay -> reset về ngày hôm nay
+                    if (
+                      selectedYear === todayYear &&
+                      newMonth === todayMonth &&
+                      newDay > todayDay
+                    ) {
+                      newDay = todayDay;
+                    }
+
+                    const daysInNewMonth = getDaysInMonth(
+                      selectedYear,
+                      newMonth
+                    );
+                    if (newDay > daysInNewMonth) {
+                      newDay = daysInNewMonth;
+                    }
+
+                    setEditDateOfManufacture(
+                      `${String(selectedYear)}-${String(newMonth).padStart(
+                        2,
+                        "0"
+                      )}-${String(newDay).padStart(2, "0")}`
+                    );
+                  };
+
+                  return (
+                    <>
+                      {/* Ô chọn Ngày */}
+                      <Select
+                        value={String(selectedDay).padStart(2, "0")}
+                        onValueChange={(newDay) => {
+                          setEditDateOfManufacture(
+                            `${String(selectedYear)}-${String(
+                              selectedMonth
+                            ).padStart(2, "0")}-${newDay}`
+                          );
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Ngày" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {days.map((d) => (
+                            <SelectItem
+                              key={d}
+                              value={d}
+                              // Vô hiệu hóa ngày trong tương lai
+                              disabled={
+                                selectedYear === todayYear &&
+                                selectedMonth === todayMonth &&
+                                Number(d) > todayDay
+                              }
+                            >
+                              {d}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Ô chọn Tháng */}
+                      <Select
+                        value={String(selectedMonth).padStart(2, "0")}
+                        onValueChange={handleMonthChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Tháng" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {months.map((m) => (
+                            <SelectItem
+                              key={m}
+                              value={m}
+                              // Vô hiệu hóa tháng trong tương lai của năm hiện tại
+                              disabled={
+                                selectedYear === todayYear &&
+                                Number(m) > todayMonth
+                              }
+                            >
+                              {m}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Ô chọn Năm */}
+                      <Select
+                        value={String(selectedYear)}
+                        onValueChange={handleYearChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Năm" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {years.map((y) => (
+                            <SelectItem key={y} value={y}>
+                              {y}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           </div>
           <div className="flex justify-end gap-2 p-4 border-t border-gray-100">
