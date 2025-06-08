@@ -6,14 +6,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import {
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    Tooltip,
-    Legend,
-} from "recharts";
 import warehouseProfitService from "@/services/warehouse-profit-service";
 import { toast } from "sonner";
 import {
@@ -23,6 +15,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 
 interface ProfitData {
     year: number;
@@ -31,12 +31,6 @@ interface ProfitData {
     totalExportRevenue: number;
     profitAmount: number;
     profitPercentage: number;
-}
-
-interface SummaryData {
-    name: string;
-    value: number;
-    color: string;
 }
 
 const formatCurrency = (value: number) => {
@@ -90,29 +84,6 @@ export function WarehouseProfitSummary() {
     const totalProfit = data.reduce((sum, item) => sum + item.profitAmount, 0);
     const averageProfitPercentage = data.reduce((sum, item) => sum + item.profitPercentage, 0) / data.length;
 
-    const summaryData: SummaryData[] = [
-        {
-            name: "Chi phí nhập",
-            value: totalImportCost,
-            color: "#ef4444",
-        },
-        {
-            name: "Doanh thu xuất",
-            value: totalExportRevenue,
-            color: "#22c55e",
-        },
-        {
-            name: "Lợi nhuận",
-            value: totalProfit,
-            color: "#3b82f6",
-        },
-        {
-            name: "Tỷ lệ lợi nhuận",
-            value: averageProfitPercentage,
-            color: "#f59e0b",
-        },
-    ];
-
     return (
         <Card>
             <CardHeader>
@@ -138,54 +109,82 @@ export function WarehouseProfitSummary() {
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={summaryData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {summaryData.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                formatter={(value: number, name: string) => {
-                                    if (name === "Tỷ lệ lợi nhuận") {
-                                        return formatPercentage(value);
-                                    }
-                                    return formatCurrency(value);
-                                }}
-                            />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                    {summaryData.map((item) => (
-                        <div
-                            key={item.name}
-                            className="flex items-center justify-between p-4 bg-muted/50 rounded-lg"
-                        >
-                            <div className="flex items-center space-x-2">
-                                <div
-                                    className="w-3 h-3 rounded-full"
-                                    style={{ backgroundColor: item.color }}
-                                />
-                                <span className="text-sm font-medium">{item.name}</span>
+                <div className="space-y-6">
+                    {/* Tổng quan */}
+                    <div className="grid grid-cols-4 gap-4">
+                        <div className="p-4 bg-muted/50 rounded-lg">
+                            <div className="text-sm font-medium text-black">Tổng chi phí nhập</div>
+                            <div className={`text-2xl font-bold ${totalImportCost === 0 ? 'text-black' :
+                                totalImportCost > 0 ? 'text-green-500' : 'text-red-500'
+                                }`}>
+                                {formatCurrency(totalImportCost)}
                             </div>
-                            <span className="text-sm font-medium">
-                                {item.name === "Tỷ lệ lợi nhuận"
-                                    ? formatPercentage(item.value)
-                                    : formatCurrency(item.value)}
-                            </span>
                         </div>
-                    ))}
+                        <div className="p-4 bg-muted/50 rounded-lg">
+                            <div className="text-sm font-medium text-black">Tổng doanh thu xuất</div>
+                            <div className={`text-2xl font-bold ${totalExportRevenue === 0 ? 'text-black' :
+                                totalExportRevenue > 0 ? 'text-green-500' : 'text-red-500'
+                                }`}>
+                                {formatCurrency(totalExportRevenue)}
+                            </div>
+                        </div>
+                        <div className="p-4 bg-muted/50 rounded-lg">
+                            <div className="text-sm font-medium text-black">Tổng lợi nhuận</div>
+                            <div className={`text-2xl font-bold ${totalProfit === 0 ? 'text-black' :
+                                totalProfit > 0 ? 'text-green-500' : 'text-red-500'
+                                }`}>
+                                {formatCurrency(totalProfit)}
+                            </div>
+                        </div>
+                        <div className="p-4 bg-muted/50 rounded-lg">
+                            <div className="text-sm font-medium text-black">Tỷ lệ lợi nhuận trung bình</div>
+                            <div className={`text-2xl font-bold ${averageProfitPercentage === 0 ? 'text-black' :
+                                averageProfitPercentage > 0 ? 'text-green-500' : 'text-red-500'
+                                }`}>
+                                {formatPercentage(averageProfitPercentage)}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bảng chi tiết theo tháng */}
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="text-black">Tháng</TableHead>
+                                <TableHead className="text-right text-black">Chi phí nhập</TableHead>
+                                <TableHead className="text-right text-black">Doanh thu xuất</TableHead>
+                                <TableHead className="text-right text-black">Lợi nhuận</TableHead>
+                                <TableHead className="text-right text-black">Tỷ lệ lợi nhuận</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {data.map((item) => (
+                                <TableRow key={item.month}>
+                                    <TableCell className="text-black">Tháng {item.month}</TableCell>
+                                    <TableCell className={`text-right ${item.totalImportCost === 0 ? 'text-black' :
+                                        item.totalImportCost > 0 ? 'text-green-500' : 'text-red-500'
+                                        }`}>
+                                        {formatCurrency(item.totalImportCost)}
+                                    </TableCell>
+                                    <TableCell className={`text-right ${item.totalExportRevenue === 0 ? 'text-black' :
+                                        item.totalExportRevenue > 0 ? 'text-green-500' : 'text-red-500'
+                                        }`}>
+                                        {formatCurrency(item.totalExportRevenue)}
+                                    </TableCell>
+                                    <TableCell className={`text-right ${item.profitAmount === 0 ? 'text-black' :
+                                        item.profitAmount > 0 ? 'text-green-500' : 'text-red-500'
+                                        }`}>
+                                        {formatCurrency(item.profitAmount)}
+                                    </TableCell>
+                                    <TableCell className={`text-right ${item.profitPercentage === 0 ? 'text-black' :
+                                        item.profitPercentage > 0 ? 'text-green-500' : 'text-red-500'
+                                        }`}>
+                                        {formatPercentage(item.profitPercentage)}
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
                 </div>
             </CardContent>
         </Card>
